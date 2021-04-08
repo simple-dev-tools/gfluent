@@ -1,13 +1,21 @@
 [tool.poetry]
 name = "gfluent"
-version = "0.1.0"
+version = "0.1.13"
 description = "A fluent API for Google Cloud Python Client"
-authors = ["Zhong Dai <zhdai@woolworths.com.au>"]
+authors = ["Zhong Dai <zhongdai.au@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+documentation = "https://gfluent.readthedocs.io/en/latest/#"
+homepage = "https://github.com/zhongdai/gfluent/releases"
+repository = "https://github.com/zhongdai/gfluent"
+keywords = ["GCP", "BigQuery", "GCS", "Fluent"]
+
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.6 <3.10"
 google-cloud-bigquery = "^2.13.1"
+google-cloud-storage = "^1.37.1"
+google-api-python-client = "^2.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"

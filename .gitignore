@@ -10,3 +10,7 @@ __pycache__/
 *.swp
 secret.sh
 output/
+_build/
+.DS_Store
+.vscode/
+.tox
