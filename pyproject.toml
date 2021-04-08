@@ -6,7 +6,7 @@ authors = ["Zhong Dai <zhongdai.au@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.0"
 google-cloud-bigquery = "^2.13.1"
 
 [tool.poetry.dev-dependencies]
