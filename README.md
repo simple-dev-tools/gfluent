@@ -15,3 +15,26 @@ result = bq.mode("WRITE_APPEND").sql("SELECT name, age from dataset.tabble").que
 print(f"The query has inserted {result} rows to table mydataset.table")
 
 ```
+
+
+```python
+
+from gfluent import GCS
+
+project_id = "here-is-you-project-id"
+
+# upload single local `file.txt` to `gs://bucket-name/import/file.txt`
+GCS(project_id).bucket("bucket-name").local("/tmp/file.txt").prefix("import").upload()
+
+# upload many local files to GCS
+# if you have /tmp/abc.txt, /tmp/111.txt, /tmp/abc.csv
+# two GCS objects will be created
+# gs://bucket-name/import/abc.txt
+# gs://bucket-name/import/111.txt
+(
+    GCS(project_id)
+    .bucket("bucket-name")
+    .local(path="/tmp", suffix=".txt").prefix("import").upload()
+)
+
+```

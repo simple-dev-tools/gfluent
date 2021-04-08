@@ -23,9 +23,11 @@ It provides a fluent-style to call the methods, here is an example,
 API Reference
 =============
 
-.. autoclass:: gfluent.bq.BQ
+.. autoclass:: gfluent.BQ
     :members:
 
+.. autoclass:: gfluent.GCS
+    :members:
 
 
 Indices and tables
