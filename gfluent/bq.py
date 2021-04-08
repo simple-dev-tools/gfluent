@@ -10,29 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class BQ(object):
-    """The fluent-style BigQuery client for chaining calls
-
-    :param project_id: The GCP Project id
-    :type project_id: str
-
-    :param kwargs: Additional arguments
-    :type kwargs: dict
-
-    Example:
-    
-    .. code-block:: python
-
-        # run the query and save to the table dataset.name
-        bq = BQ(project='you-project-id', table='dataset.name')
-        num_rows = bq.mode('CREATE_TRUNCATE').sql('select * from table').query()
-
-        bq = BQ(project='you-project-id')
-
-        rows = bq.sql('select id, name from abc.tab').query()
-        for row in rows:
-            print(row.id, row.name)
-    """
-
     __required_setting = {
         "table": "The BigQuery full tablename with dataset",
         "gcs": "The GCS location with gs:// prefix",
@@ -42,6 +19,28 @@ class BQ(object):
         "create_mode": "create or never create"
     }
     def __init__(self, project: str, **kwargs):
+        """The fluent-style BigQuery client for chaining calls
+
+        :param project_id: The GCP Project id
+        :type project_id: str
+
+        :param kwargs: Additional arguments
+        :type kwargs: dict
+
+        Example:
+    
+        .. code-block:: python
+
+            # run the query and save to the table dataset.name
+            bq = BQ(project='you-project-id', table='dataset.name')
+            num_rows = bq.mode('CREATE_TRUNCATE').sql('select * from table').query()
+
+            bq = BQ(project='you-project-id')
+
+            rows = bq.sql('select id, name from abc.tab').query()
+            for row in rows:
+                print(row.id, row.name)
+        """
         if not isinstance(project, str) or project is None:
             raise ValueError("project id must be provided to init the BQ")
 
@@ -193,7 +192,14 @@ class BQ(object):
         self._client.delete_table(self.__table_id, not_found_ok=True)
 
     def create_dataset(self, dataset: str, location="US", timeout=30):
-        """Create the dataset
+        """Create the given dataset
+
+        :param dataset: The dataset id without project id
+        :type dataset: str
+        :param location: A BigQuery location, defaults to "US"
+        :type location: str, optional
+        :param timeout: The timeout in second, defaults to 30
+        :type timeout: int, optional
         """
         dataset_id = f"{self._project}.{dataset}"
 
@@ -205,7 +211,10 @@ class BQ(object):
 
 
     def delete_dataset(self, dataset: str):
-        """Create the dataset
+        """Delete the given dataset
+
+        :param dataset: the dataset id, without project_id
+        :type dataset: str
         """
         dataset_id = f"{self._project}.{dataset}"
 
