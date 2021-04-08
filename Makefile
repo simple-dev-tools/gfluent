@@ -10,6 +10,9 @@ help:
 test: ## run unit test
 	pytest $(PYTEST_OPTION)
 
+docs: ## generate API document
+	make -C docs html
+
 
 clean: ## delete build temp files
 	rm -rf .pytest_cache

@@ -10,6 +10,29 @@ logger = logging.getLogger(__name__)
 
 
 class BQ(object):
+    """The fluent-style BigQuery client for chaining calls
+
+    :param project_id: The GCP Project id
+    :type project_id: str
+
+    :param kwargs: Additional arguments
+    :type kwargs: dict
+
+    Example:
+    
+    .. code-block:: python
+
+        # run the query and save to the table dataset.name
+        bq = BQ(project='you-project-id', table='dataset.name')
+        num_rows = bq.mode('CREATE_TRUNCATE').sql('select * from table').query()
+
+        bq = BQ(project='you-project-id')
+
+        rows = bq.sql('select id, name from abc.tab').query()
+        for row in rows:
+            print(row.id, row.name)
+    """
+
     __required_setting = {
         "table": "The BigQuery full tablename with dataset",
         "gcs": "The GCS location with gs:// prefix",
@@ -19,27 +42,6 @@ class BQ(object):
         "create_mode": "create or never create"
     }
     def __init__(self, project: str, **kwargs):
-        """The fluent-style BigQuery client for chaining calls
-
-
-        :param project_id: The GCP Project id
-        :type project_id: str
-
-        Example:
-        
-        .. code-block:: python
-
-            # run the query and save to the table dataset.name
-            bq = BQ(project='you-project-id', table='dataset.name')
-            num_rows = bq.mode('CREATE_TRUNCATE').sql('select * from table').query()
-
-            bq = BQ(project='you-project-id')
-
-            rows = bq.sql('select id, name from abc.tab').query()
-            for row in rows:
-                print(row.id, row.name)
-
-        """
         if not isinstance(project, str) or project is None:
             raise ValueError("project id must be provided to init the BQ")
 
@@ -95,11 +97,11 @@ class BQ(object):
 
         
     def mode(self, mode: str):
-        """Set the bigquery `write_disposition` parameter
+        """Set the bigquery ``write_disposition`` parameter
 
-        WRITE_EMPTY	    This job should only be writing to empty tables.
-        WRITE_TRUNCATE	This job will truncate table data and write from the beginning.
-        WRITE_APPEND	This job will append to a table.
+        * WRITE_EMPTY This job should only be writing to empty tables.
+        * WRITE_TRUNCATE This job will truncate table data and write from the beginning.
+        * WRITE_APPEND This job will append to a table.
 
         :param mode: must be one of above value
         :type mode: str
@@ -115,10 +117,10 @@ class BQ(object):
         return self
 
     def create_mode(self, create_mode: str):
-        """Set the bigquery `create_disposition` parameter
+        """Set the bigquery ``create_disposition`` parameter
 
-        CREATE_NEVER	This job should never create tables.
-        CREATE_IF_NEEDED	This job should create a table if it doesn't already exist.
+        * CREATE_NEVER This job should never create tables.
+        * CREATE_IF_NEEDED This job should create a table if it doesn't already exist.
 
         :param create_mode: must be one of above value
         :type create_mode: str
@@ -154,6 +156,9 @@ class BQ(object):
 
     def query(self):
         """Run the given sql query, return rows or save to table
+
+        If the ``table`` attribute is set, it will save the query result to that
+        table,  otherwise it returns the BigQuery rows
         """
         if "_table" in self.__dict__:
             return self._query_load()

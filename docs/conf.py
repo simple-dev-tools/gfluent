@@ -21,6 +21,7 @@ project = 'gfluent'
 copyright = '2021, Zhong Dai'
 author = 'Zhong Dai'
 
+from gfluent import BQ
 # The full version, including alpha/beta/rc tags
 release = '0.1.2'
 

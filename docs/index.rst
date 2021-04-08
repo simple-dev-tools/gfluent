@@ -1,14 +1,30 @@
-.. gfluent documentation master file, created by
-   sphinx-quickstart on Thu Apr  8 15:48:54 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to gfluent's documentation!
 ===================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+This is a wrapper on Google Cloud Platform Python SDK client library. 
+It provides a fluent-style to call the methods, here is an example,
+
+.. code-block:: python
+
+   from gfluent import BQ
+
+   project_id = "here-is-you-project-id"
+   bq = BQ(project_id, table="mydataset.table")
+
+   count = (
+      bq.mode("WRITE_APPEND")
+        .sql("SELECT name, age from dataset.tabble")
+        .query()
+      )
+
+   print(f"{count} rows loaded")
+
+
+API Reference
+=============
+
+.. autoclass:: gfluent.bq.BQ
+    :members:
 
 
 
