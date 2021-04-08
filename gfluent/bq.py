@@ -10,6 +10,40 @@ logger = logging.getLogger(__name__)
 
 
 class BQ(object):
+    """The fluent-style BigQuery client for chaining calls
+
+    Example:
+    
+    .. code-block:: python
+
+        # run the query and save to the table dataset.name
+        bq = BQ(project='you-project-id', table='dataset.name')
+        num_rows = bq.mode('CREATE_TRUNCATE').sql('select * from table').query()
+
+        bq = BQ(project='you-project-id')
+
+        rows = bq.sql('select id, name from abc.tab').query()
+        for row in rows:
+            print(row.id, row.name)
+
+    Allowed additional arguments,
+
+    .. code-block:: bash
+
+        table: The BigQuery full tablename with dataset,
+        gcs: The GCS location with gs:// prefix,
+        sql: SQL Statement should start with SELECT,
+        schema: The BigQuery standard Schema structure,
+        mode: override or append mode,
+        create_mode: create or never create
+
+    :param project_id: The GCP Project id
+    :type project_id: str
+
+    :param kwargs: Additional arguments
+    :type kwargs: dict
+
+    """
     __required_setting = {
         "table": "The BigQuery full tablename with dataset",
         "gcs": "The GCS location with gs:// prefix",
@@ -19,28 +53,6 @@ class BQ(object):
         "create_mode": "create or never create"
     }
     def __init__(self, project: str, **kwargs):
-        """The fluent-style BigQuery client for chaining calls
-
-        :param project_id: The GCP Project id
-        :type project_id: str
-
-        :param kwargs: Additional arguments
-        :type kwargs: dict
-
-        Example:
-    
-        .. code-block:: python
-
-            # run the query and save to the table dataset.name
-            bq = BQ(project='you-project-id', table='dataset.name')
-            num_rows = bq.mode('CREATE_TRUNCATE').sql('select * from table').query()
-
-            bq = BQ(project='you-project-id')
-
-            rows = bq.sql('select id, name from abc.tab').query()
-            for row in rows:
-                print(row.id, row.name)
-        """
         if not isinstance(project, str) or project is None:
             raise ValueError("project id must be provided to init the BQ")
 
@@ -61,6 +73,11 @@ class BQ(object):
         return f"BQ(project={self._project})"
     
     def table(self, table: str):
+        """Specify the table name with dataset.name format
+
+        :param table: BigQuery full table name without project id
+        :type table: str
+        """
         if not isinstance(table, str) or '.' not in table:
             raise ValueError(f"{table} is not look like dataset.table")
 
@@ -71,6 +88,11 @@ class BQ(object):
 
     
     def gcs(self, gcs: str):
+        """Specify the GCS location
+
+        :param gcs: must start with ``gs://``
+        :type gcs: str
+        """
         if not isinstance(gcs, str) or not gcs.startswith("gs://"):
             raise ValueError(f"{gcs} is not look like gs://bucket/path/")
 
@@ -79,6 +101,13 @@ class BQ(object):
         return self
 
     def sql(self, sql: str):
+        """Specify the SQL statement
+
+        Only one statement is allowed, and only support ``SELECT`` as of now
+
+        :param sql: must start with ``select``
+        :type sql: str
+        """
         if not isinstance(sql, str) or not sql.strip().upper().startswith("SELECT"):
             raise ValueError(f"{sql} is not look like SELECT ...")
 
@@ -87,6 +116,11 @@ class BQ(object):
         return self
 
     def schema(self, schema: List[bigquery.SchemaField]):
+        """Specify the table schema
+
+        :param schema: A list of ``SchemaField`` definition
+        :type schema: List[bigquery.SchemaField]
+        """
         if not isinstance(schema, list):
             raise TypeError("The `schema` should be List[bigquery.SchemaField]")
 
@@ -165,13 +199,20 @@ class BQ(object):
             return self._query()
 
     def load(self):
+        """Not implemented yet
+        """
         pass
 
     def export(self):
+        """Not implemented yet
+        """
         pass
 
     def truncate(self):
-        """Delete all rows in a table
+        """Delete all rows in the given table
+
+        ``.table()`` must be called before calling this method to speicfy which
+        table to be truncated
         """
         if "_table" not in self.__dict__:
             raise ValueError("You must specify the table")
@@ -181,10 +222,15 @@ class BQ(object):
         self._client.query(sql_command).result()
 
     def create(self):
+        """Not implemented yet
+        """
         pass
 
     def delete(self):
-        """Delete a given table
+        """Drop the given table
+
+        ``.table()`` must be called before calling this method to speicfy which
+        table to be dropped. No error will be raised if the table is not found.
         """
         if "_table" not in self.__dict__:
             raise ValueError("You must specify the table")
@@ -211,7 +257,7 @@ class BQ(object):
 
 
     def delete_dataset(self, dataset: str):
-        """Delete the given dataset
+        """Delete (or drop) the given dataset
 
         :param dataset: the dataset id, without project_id
         :type dataset: str
@@ -224,6 +270,9 @@ class BQ(object):
 
     def is_exist(self) -> bool:
         """Check if a given table exists
+
+        ``.table()`` must be called before calling this method to speicfy which
+        table to be checked.
         """
         if "_table" not in self.__dict__:
             raise ValueError("You must specify the table")
