@@ -1,0 +1,12 @@
+.ipynb_checkpoints/
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.log
+*.swp
+secret.sh
+output/
