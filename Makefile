@@ -1,7 +1,7 @@
 PYTEST_OPTION = --log-cli-format="%(asctime)s %(levelname)s %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S" --log-cli-level="INFO"
 
 
-.PHONY: help clean
+.PHONY: help clean docs
 
 
 help:
