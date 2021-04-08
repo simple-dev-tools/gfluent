@@ -89,7 +89,7 @@ class TestBQIntegration(unittest.TestCase):
 
         self.assertFalse(self.bq.is_exist())
 
-    def test_delete(self):
+    def test_is_exists(self):
         # create the table first
         row_count = (self.bq
                     .table(self.table_name)

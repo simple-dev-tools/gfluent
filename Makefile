@@ -1,7 +1,7 @@
 PYTEST_OPTION = --log-cli-format="%(asctime)s %(levelname)s %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S" --log-cli-level="INFO"
 
 
-.PHONY: help clean
+.PHONY: help clean docs
 
 
 help:
@@ -9,6 +9,9 @@ help:
 
 test: ## run unit test
 	pytest $(PYTEST_OPTION)
+
+docs: ## generate API document
+	make -C docs html
 
 
 clean: ## delete build temp files

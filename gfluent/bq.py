@@ -21,12 +21,14 @@ class BQ(object):
     def __init__(self, project: str, **kwargs):
         """The fluent-style BigQuery client for chaining calls
 
-
         :param project_id: The GCP Project id
         :type project_id: str
 
+        :param kwargs: Additional arguments
+        :type kwargs: dict
+
         Example:
-        
+    
         .. code-block:: python
 
             # run the query and save to the table dataset.name
@@ -38,7 +40,6 @@ class BQ(object):
             rows = bq.sql('select id, name from abc.tab').query()
             for row in rows:
                 print(row.id, row.name)
-
         """
         if not isinstance(project, str) or project is None:
             raise ValueError("project id must be provided to init the BQ")
@@ -95,11 +96,11 @@ class BQ(object):
 
         
     def mode(self, mode: str):
-        """Set the bigquery `write_disposition` parameter
+        """Set the bigquery ``write_disposition`` parameter
 
-        WRITE_EMPTY	    This job should only be writing to empty tables.
-        WRITE_TRUNCATE	This job will truncate table data and write from the beginning.
-        WRITE_APPEND	This job will append to a table.
+        * WRITE_EMPTY This job should only be writing to empty tables.
+        * WRITE_TRUNCATE This job will truncate table data and write from the beginning.
+        * WRITE_APPEND This job will append to a table.
 
         :param mode: must be one of above value
         :type mode: str
@@ -115,10 +116,10 @@ class BQ(object):
         return self
 
     def create_mode(self, create_mode: str):
-        """Set the bigquery `create_disposition` parameter
+        """Set the bigquery ``create_disposition`` parameter
 
-        CREATE_NEVER	This job should never create tables.
-        CREATE_IF_NEEDED	This job should create a table if it doesn't already exist.
+        * CREATE_NEVER This job should never create tables.
+        * CREATE_IF_NEEDED This job should create a table if it doesn't already exist.
 
         :param create_mode: must be one of above value
         :type create_mode: str
@@ -154,6 +155,9 @@ class BQ(object):
 
     def query(self):
         """Run the given sql query, return rows or save to table
+
+        If the ``table`` attribute is set, it will save the query result to that
+        table,  otherwise it returns the BigQuery rows
         """
         if "_table" in self.__dict__:
             return self._query_load()
@@ -188,7 +192,14 @@ class BQ(object):
         self._client.delete_table(self.__table_id, not_found_ok=True)
 
     def create_dataset(self, dataset: str, location="US", timeout=30):
-        """Create the dataset
+        """Create the given dataset
+
+        :param dataset: The dataset id without project id
+        :type dataset: str
+        :param location: A BigQuery location, defaults to "US"
+        :type location: str, optional
+        :param timeout: The timeout in second, defaults to 30
+        :type timeout: int, optional
         """
         dataset_id = f"{self._project}.{dataset}"
 
@@ -200,7 +211,10 @@ class BQ(object):
 
 
     def delete_dataset(self, dataset: str):
-        """Create the dataset
+        """Delete the given dataset
+
+        :param dataset: the dataset id, without project_id
+        :type dataset: str
         """
         dataset_id = f"{self._project}.{dataset}"
 
