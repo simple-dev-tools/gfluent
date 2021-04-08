@@ -4,8 +4,12 @@
 name: Run Unit test and Integration test
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:    
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -38,11 +42,3 @@ jobs:
         PROJECT_ID: ${{ secrets.PROJECT_ID }}
       run: |
         pytest
-
-    - name: Build and publish
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        poetry build
-        twine upload dist/*
