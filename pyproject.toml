@@ -1,9 +1,14 @@
 [tool.poetry]
 name = "gfluent"
-version = "0.1.6"
+version = "0.1.8"
 description = "A fluent API for Google Cloud Python Client"
 authors = ["Zhong Dai <zhongdai.au@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/zhongdai/gfluent/releases"
+repository = "https://github.com/zhongdai/gfluent"
+keywords = ["GCP", "BigQuery", "GCS", "Fluent"]
+
 
 [tool.poetry.dependencies]
 python = ">=3.6 <3.10"

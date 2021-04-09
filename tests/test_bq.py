@@ -21,6 +21,15 @@ class TestBQ(unittest.TestCase):
         self.assertEqual(bq._mode, "WRITE_APPEND")
         self.assertEqual(bq._create_mode, "CREATE_IF_NEEDED")
 
+    def test_format_keyword(self):
+        project = "here-is-project-id"
+        bq = BQ(project, format="format")
+        self.assertEqual(bq._format, "format")
+
+        bq1 = BQ(project)
+        bq1.format("abc")
+        self.assertEqual(bq1._format, "abc")
+
     def test_init_with_kwargs(self):
         project = "here-is-project-id"
         schema = [

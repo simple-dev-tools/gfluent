@@ -14,6 +14,7 @@ test-ut: ## run unit test
 test-sit: ## run sit test
 	pytest $(PYTEST_OPTION) tests/test_gcs_integration.py
 	pytest $(PYTEST_OPTION) tests/test_bq_integration.py
+	pytest $(PYTEST_OPTION) tests/test_gcs_and_bq.py
 
 docs: ## generate API document
 	make -C docs html
@@ -21,5 +22,7 @@ docs: ## generate API document
 
 clean: ## delete build temp files
 	rm -rf .pytest_cache
+	rm -rf docs/_build
+	rm -rf dist
 	find . | grep -E "(__pycache__|\.pyc|\.pyo$\)" | xargs rm -rf
 	find . | grep -E "(\.ipynb_checkpoints$\)" | xargs rm -rf

@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -21,10 +21,9 @@ project = 'gfluent'
 copyright = '2021, Zhong Dai'
 author = 'Zhong Dai'
 
-from gfluent import BQ, GCS
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.2'
+release = '0.1.8'
 
 
 # -- General configuration ---------------------------------------------------
@@ -55,7 +54,7 @@ master_doc = "index"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "classic"
+html_theme = "alabaster"
 autodoc_member_order = "bysource"
 
 # Add any paths that contain custom static files (such as style sheets) here,

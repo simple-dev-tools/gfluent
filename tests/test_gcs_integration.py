@@ -19,7 +19,7 @@ class TestGCSIntegration(unittest.TestCase):
         with open(self.tf.name, 'w') as f:
             f.write("hello")
 
-        os.makedirs("/tmp/sit-temp", exist_ok=True)
+        # os.makedirs("/tmp/sit-temp", exist_ok=True)
 
     def tearDown(self):
         GCS(self.project_id).bucket(self.bucket).prefix(self.prefix).delete()
