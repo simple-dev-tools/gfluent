@@ -1,5 +1,5 @@
-Welcome to gfluent's documentation!
-===================================
+gfluent's documentation 0.1.8
+=============================
 
 This is a wrapper on Google Cloud Platform Python SDK client library. 
 It provides a fluent-style to call the methods, here is an example,
