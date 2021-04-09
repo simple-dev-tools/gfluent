@@ -38,3 +38,31 @@ GCS(project_id).bucket("bucket-name").local("/tmp/file.txt").prefix("import").up
 )
 
 ```
+
+## Installation
+
+
+Install from PyPi,
+
+```bash
+pip install -U gfluent
+```
+
+Or build and install from source code,
+
+```bash
+pip install -r requirements-dev.txt
+poetry build
+pip install dist/gfluent-<versoin>.tar.gz
+```
+
+
+## Testing
+
+The unit test and integration test are actually using the real GCP project, so you
+cannot execute the integration test if you don't have the GCP project setup.
+
+If you really want to run the test cases, you need to set up a free tier project, and
+set the project ID as `PROJECT_ID` enviroment, you also need to expose the GCP JSON key
+of the service account with correct permission of read/write `BigQuery` and `GCS`.
+

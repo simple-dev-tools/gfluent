@@ -50,7 +50,8 @@ class BQ(object):
         "sql": "SQL Statement should start with SELECT",
         "schema": "The BigQuery standard Schema structure",
         "mode": "override or append mode",
-        "create_mode": "create or never create"
+        "create_mode": "create or never create",
+        "format": "the datafile format"
     }
     def __init__(self, project: str, **kwargs):
         if not isinstance(project, str) or project is None:
@@ -59,8 +60,10 @@ class BQ(object):
         self._project = project
         self._client = bigquery.Client(project=project)
 
+        # default
         self._mode = "WRITE_APPEND"
         self._create_mode = "CREATE_IF_NEEDED"
+        self._format = "NEWLINE_DELIMITED_JSON"
 
         for attr in kwargs:
             if attr in BQ.__required_setting.keys():
@@ -86,9 +89,27 @@ class BQ(object):
 
         return self
 
+
+    def format(self, format_: str):
+        """Specify the format of import/export files, default NEWLINE_DELIMITED_JSON
+
+        * ``AVRO`` Specifies Avro format.
+        * ``CSV Specifies`` CSV format.
+        * ``DATASTORE_BACKUP`` Specifies datastore backup format
+        * ``NEWLINE_DELIMITED_JSON`` Specifies newline delimited JSON format.
+        * ``ORC`` Specifies Orc format.
+        * ``PARQUET`` Specifies Parquet format.
+
+        :param format: [description]
+        :type format: str
+        """
+
+        self._format = format_
+        return self
+
     
     def gcs(self, gcs: str):
-        """Specify the GCS location
+        """Specify the GCS location, single file or wildcard
 
         :param gcs: must start with ``gs://``
         :type gcs: str
@@ -130,7 +151,7 @@ class BQ(object):
 
         
     def mode(self, mode: str):
-        """Set the bigquery ``write_disposition`` parameter
+        """Set the bigquery ``write_disposition`` parameter, default WRITE_APPEND
 
         * WRITE_EMPTY This job should only be writing to empty tables.
         * WRITE_TRUNCATE This job will truncate table data and write from the beginning.
@@ -150,7 +171,7 @@ class BQ(object):
         return self
 
     def create_mode(self, create_mode: str):
-        """Set the bigquery ``create_disposition`` parameter
+        """Set the bigquery ``create_disposition`` parameter, default CREATE_IF_NEEDED
 
         * CREATE_NEVER This job should never create tables.
         * CREATE_IF_NEEDED This job should create a table if it doesn't already exist.
@@ -198,10 +219,44 @@ class BQ(object):
         else:
             return self._query()
 
-    def load(self):
-        """Not implemented yet
+    def load(self, location: str="US") -> int:
+        """Run the ``LoadJob``, and return number of rows loaded
+
+        ``.table()``, ``.gcs()`` must be called to run this method.
+        ``.schema()`` is optional, if not specified, using ``autodetect`
+
+        ``.mode()``, ``.create_mode()`` and ``.format()`` are optional, as they
+        have default values.
+
+        :param location: must be same as your dataset, default ``US``
+        :type location: str
         """
-        pass
+
+        if "_table" not in self.__dict__ or "_gcs" not in self.__dict__:
+            raise ValueError(".table() and .gcs() must be called before run")
+
+        if "_schema" not in self.__dict__:
+            job_config = bigquery.LoadJobConfig(
+                autodetect=True,
+                source_format=self._format
+            )
+        else:
+            job_config = bigquery.LoadJobConfig(
+                schema=self._schema,
+                source_format=self._format
+            )
+
+        load_job = self._client.load_table_from_uri(
+            self._gcs,
+            self.__table_id,
+            location=location,
+            job_config=job_config
+        )
+
+        load_job.result()
+
+        return self._client.get_table(self.__table_id).num_rows
+
 
     def export(self):
         """Not implemented yet
@@ -235,6 +290,7 @@ class BQ(object):
         if "_table" not in self.__dict__:
             raise ValueError("You must specify the table")
 
+        logger.warning(f"deleting the table {self.__table_id}")
         self._client.delete_table(self.__table_id, not_found_ok=True)
 
     def create_dataset(self, dataset: str, location="US", timeout=30):

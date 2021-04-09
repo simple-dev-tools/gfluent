@@ -90,11 +90,16 @@ class GCS(object):
         for f in self._local_files:
             basename = os.path.basename(f)
             blob = bucket.blob(f"{self._prefix}/{basename}")
-            logger.info(f"uploading {f} to {blob}")
+            logger.info(f"uploading {f} to gs://{self._bucket}/{blob.name}")
             blob.upload_from_filename(f)
 
     def download(self):
-        """Download file from the given prefix to local
+        """Download file from the given prefix to local folder
+
+        The prefix of the blob object will be ignored,
+
+        ``gs://bucket/folder1/abc.txt`` will be downloaded to ``/var/temp/abc.txt``
+        if the ``.local('var/temp')`` is set.
         """
         if not os.path.isdir(self._local):
             raise ValueError(f"{self._local} must be a dir for download")
@@ -103,7 +108,7 @@ class GCS(object):
         blobs = bucket.list_blobs(prefix=self._prefix, delimiter='/')
 
         for blob in blobs:
-            destination_uri = os.path.join(self._local, blob.name) 
+            destination_uri = os.path.join(self._local, os.path.basename(blob.name))
             logger.info(f"downloading {blob} to {destination_uri}")
             blob.download_to_filename(destination_uri)
 
@@ -117,5 +122,5 @@ class GCS(object):
 
         with self._client.batch():
             for blob in blobs_to_delete:
-                logger.warning(f"deleting {blob}")
+                logger.warning(f"deleting gs://{self._bucket}/{blob.name}")
                 blob.delete()
