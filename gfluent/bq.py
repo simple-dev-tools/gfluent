@@ -281,6 +281,11 @@ class BQ(object):
         """
         pass
 
+    def drop(self):
+        """Alias of ``.delete()``
+        """
+        self.delete()
+
     def delete(self):
         """Drop the given table
 

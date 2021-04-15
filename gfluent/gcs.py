@@ -108,9 +108,12 @@ class GCS(object):
         blobs = bucket.list_blobs(prefix=self._prefix, delimiter='/')
 
         for blob in blobs:
-            destination_uri = os.path.join(self._local, os.path.basename(blob.name))
-            logger.info(f"downloading {blob} to {destination_uri}")
-            blob.download_to_filename(destination_uri)
+            if not blob.name.endswith('/'):
+                destination_uri = os.path.join(self._local, os.path.basename(blob.name))
+                logger.info(f"downloading {blob.name} to {destination_uri}")
+                blob.download_to_filename(destination_uri)
+            else:
+                logger.warning(f"Skipped the blob = {blob.name}, which is a directory")
 
 
     def delete(self):
