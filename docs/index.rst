@@ -1,4 +1,4 @@
-gfluent's documentation 0.1.8
+gfluent's documentation 0.1.10
 =============================
 
 This is a wrapper on Google Cloud Platform Python SDK client library. 
