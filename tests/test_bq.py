@@ -107,3 +107,10 @@ class TestBQ():
 
         with pytest.raises(ValueError):
             _ = BQ(project="proj_id", format="wrong mode")
+
+    def test_invalid_table_name(self):
+        with pytest.raises(ValueError):
+            self.bq.table("no_dot_in_table")
+
+        with pytest.raises(ValueError):
+            _ = BQ(project="proj_id", table="wrong table name")

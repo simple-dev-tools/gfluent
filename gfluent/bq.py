@@ -5,6 +5,7 @@ from typing import List
 
 from google.cloud.exceptions import NotFound
 from google.cloud import bigquery
+from google.api_core.exceptions import Conflict
 
 logger = logging.getLogger(__name__)
 
@@ -284,10 +285,24 @@ class BQ(object):
         logger.info(f"truncate is called, sql = {sql_command}")
         self._client.query(sql_command).result()
 
-    def create(self):
-        """Not implemented yet
+    def create(self, ok_exists=False):
+        """Create the table with given schema
+
+        ``.schema()`` and ``.table()`` must be called before invoke this method
+        The schema should be a list of ``bigquery.SchemaField()``
         """
-        pass
+        if "_schema" not in self.__dict__ or "_table" not in self.__dict__:
+            raise ValueError("You must specify schema and table")
+
+        full_table_id = f"{self._project}.{self._table}"
+        table_ref = bigquery.Table(full_table_id, schema=self._schema)
+        try:
+            table = self._client.create_table(table_ref)
+        except Conflict:
+            if ok_exists:
+                logger.warning(f"{self._table} already exists, skip creating")
+            else:
+                raise
 
     def drop(self):
         """Alias of ``.delete()``
