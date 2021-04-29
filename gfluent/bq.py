@@ -94,7 +94,7 @@ class BQ(object):
         """Specify the format of import/export files, default NEWLINE_DELIMITED_JSON
 
         * ``AVRO`` Specifies Avro format.
-        * ``CSV Specifies`` CSV format.
+        * ``CSV`` Specifies CSV format.
         * ``DATASTORE_BACKUP`` Specifies datastore backup format
         * ``NEWLINE_DELIMITED_JSON`` Specifies newline delimited JSON format.
         * ``ORC`` Specifies Orc format.
@@ -103,6 +103,11 @@ class BQ(object):
         :param format: [description]
         :type format: str
         """
+        _allowed = ["AVRO", "CSV", "DATASTORE_BACKUP", "NEWLINE_DELIMITED_JSON",
+                    "ORC", "PARQUET"]
+
+        if not isinstance(format_, str) or format_ not in _allowed:
+            raise ValueError(f"{format_} is not one of {'|'.join(_allowed)}")
 
         self._format = format_
         return self
