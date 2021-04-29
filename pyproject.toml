@@ -15,6 +15,7 @@ keywords = ["GCP", "BigQuery", "GCS", "Fluent"]
 python = ">=3.6 <3.10"
 google-cloud-bigquery = "^2.13.1"
 google-cloud-storage = "^1.37.1"
+google-api-python-client = "^2.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"

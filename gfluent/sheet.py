@@ -17,9 +17,6 @@ _GOOGLECREDENTIAL = service_account.Credentials
 
 
 def sheet_service(cls):
-    """ Allow the the SHEET class to take service_account.Credentials object 
-        and FULL path to the service account
-    """
     SCOPES = [
         'https://www.googleapis.com/auth/spreadsheets.readonly',
         'https://www.googleapis.com/auth/spreadsheets',
@@ -89,9 +86,6 @@ class Sheet(object):
     }
 
     def __init__(self, sheet_cred: _GOOGLECREDENTIAL, **kwargs):
-        """
-
-        """
         self._sheet_cred = sheet_cred
         self._service = googleapiclient.discovery.build(
             'sheets', 'v4', credentials=self._sheet_cred)

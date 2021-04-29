@@ -226,7 +226,7 @@ class BQ(object):
         """Run the ``LoadJob``, and return number of rows loaded
 
         ``.table()``, ``.gcs()`` must be called to run this method.
-        ``.schema()`` is optional, if not specified, using ``autodetect`
+        ``.schema()`` is optional, if not specified, using ``autodetect``
 
         ``.mode()``, ``.create_mode()`` and ``.format()`` are optional, as they
         have default values.
