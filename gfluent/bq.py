@@ -124,13 +124,16 @@ class BQ(object):
     def sql(self, sql: str):
         """Specify the SQL statement
 
-        Only one statement is allowed, and only support ``SELECT`` as of now
+        Only one statement is allowed, and only support ``SELECT`` and ``WITH`` 
+        as of now
 
         :param sql: must start with ``select``
         :type sql: str
         """
-        if not isinstance(sql, str) or not sql.strip().upper().startswith("SELECT"):
-            raise ValueError(f"{sql} is not look like SELECT ...")
+        if not isinstance(sql, str) \
+            or (not sql.strip().upper().startswith("SELECT") \
+            and not sql.strip().upper().startswith("WITH")):
+            raise ValueError(f"{sql} is not look like SELECT or WITH ...")
 
         self._sql = sql
 
