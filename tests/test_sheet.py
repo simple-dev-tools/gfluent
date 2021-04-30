@@ -38,8 +38,13 @@ class TestSheet(unittest.TestCase):
 
     def test_worksheet_keyword(self):
 
-        sheet = Sheet(SA_PATH).sheet_id("abc").worksheet("A:C")
-        self.assertEqual(sheet._worksheet.__class__, googleSheetType)
+        sheet = Sheet(SA_PATH).sheet_id("abc").worksheet("Sheet1")
+        self.assertEqual(sheet._worksheet, "Sheet1")
+
+    def test_range_keyword(self):
+
+        sheet = Sheet(SA_PATH).sheet_id("abc").worksheet("Sheet1").range("A:C")
+        self.assertEqual(sheet._range, "A:C")
 
     def test_with_kwargs(self):
         bq_project = 'here-is-project-id'
@@ -47,12 +52,13 @@ class TestSheet(unittest.TestCase):
         bq = BQ(bq_project, table=table)
         sheet = Sheet(SA_PATH,
                       sheet_id="abc",
-                      worksheet="A:C",
+                      worksheet="Sheet1",
+                      range="A:C",
                       bq=bq
                       )
         self.assertEqual(sheet._sheet_id, "abc")
-        self.assertEqual(sheet._worksheet.__class__, googleSheetType)
-        self.assertEqual(bq._project, bq_project)
+        self.assertEqual(sheet._worksheet, "Sheet1")
+        self.assertEqual(sheet._range, "A:C")
         self.assertEqual(bq._table, table)
 
     def test_exception(self):
@@ -61,6 +67,9 @@ class TestSheet(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             _ = Sheet(SA_PATH).worksheet("132")
+
+        with self.assertRaises(ValueError):
+            _ = Sheet(SA_PATH).sheet_id(123).range("A:C")
 
         with self.assertRaises(ValueError):
             _ = Sheet(SA_PATH,

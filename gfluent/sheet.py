@@ -17,8 +17,8 @@ _GOOGLECREDENTIAL = service_account.Credentials
 
 
 def sheet_service(cls):
-    """ Allow the the SHEET class to take service_account.Credentials object 
-        and FULL path to the service account
+    """Allow the the SHEET class to take service_account.Credentials object
+       and FULL path to the service account
     """
     SCOPES = [
         'https://www.googleapis.com/auth/spreadsheets.readonly',
@@ -46,8 +46,7 @@ def sheet_service(cls):
 
 
 def typechecker(func):
-    """
-        Check function position params' type base on type hint
+    """Check function position params' type base on type hint
     """
     def wrapper(*args, **kwargs):
 
@@ -74,7 +73,7 @@ class Sheet(object):
 
     .. code-block:: python
 
-        #read the data from google sheet to tables 
+        # read the data from google sheet to tables
         sheet = Sheet('google-sa-credential-or-path')
         sheet.sheet_id('your-sheet-id')
         .worksheet('workshet-tab-and-range')
@@ -85,7 +84,9 @@ class Sheet(object):
     __required_setting = {
         "sheet_id": "The Google sheet id",
         "worksheet": "The name of the google worksheet",
-        "bq": "the Bigquery connector"
+        "range": "the worksheet range",
+        "bq": "the Bigquery connector",
+
     }
 
     def __init__(self, sheet_cred: _GOOGLECREDENTIAL, **kwargs):
@@ -115,7 +116,7 @@ class Sheet(object):
 
     @ typechecker
     def worksheet(self, worksheet: str):
-        """Specify the either both sheet name and data range or either of them
+        """Specify the worksheet name
 
         :type worksheet: str
 
@@ -124,8 +125,20 @@ class Sheet(object):
             raise ValueError(
                 ".sheet_id() must be called before run")
 
-        self._worksheet = self._service.spreadsheets().values().get(
-            spreadsheetId=self._sheet_id, range=worksheet)
+        self._worksheet = worksheet
+
+        return self
+
+    def range(self, range: str):
+        """Specify the worksheet data range
+
+        :type range: str
+        """
+
+        if "_worksheet" not in self.__dict__:
+            raise ValueError(
+                ".worksheet() must be called before run")
+        self._range = range
 
         return self
 
@@ -133,7 +146,7 @@ class Sheet(object):
     def bq(self, bq: BQ):
         """use project id and other params to initial bq object
 
-        :type: str
+        : type: str
 
         """
 
@@ -141,11 +154,21 @@ class Sheet(object):
 
         return self
 
+    def _worksheet_request(self):
+        """To create the google sheet HttpReqeust
+        """
+        if "_range" in self.__dict__:
+            _worksheet_and_range = self._worksheet + "!" + self._range
+        else:
+            _worksheet_and_range = self._worksheet
+
+        return self._service.spreadsheets().values().get(
+            spreadsheetId=self._sheet_id, range=_worksheet_and_range)
+
     def _load(self):
         """load Google Sheet Data to json object
 
-
-        :raises Values error if
+        : raises Values error if
             - Empty Worksheet
             - No Worksheet Column names
             - wrong column name format, must start letters, numbers, and underscores, start with a letter or underscore
@@ -154,11 +177,11 @@ class Sheet(object):
 
         regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
-        sheet_result = self._worksheet.execute()
+        sheet_result = self._worksheet_request().execute()
         if "values" not in sheet_result:
             raise ValueError("Empty Google Sheet, aborted")
 
-        data = self._worksheet.execute()["values"]
+        data = self._worksheet_request().execute()["values"]
         if not data[0]:
             raise ValueError("Empty Google Sheet column name, aborted")
 
