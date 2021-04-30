@@ -1,69 +1,21 @@
 """A fluent style Google Sheet client
 """
-# from __future__ import annotations
 import logging
-from typing import List
-from types import FunctionType
-from gfluent import BQ
-from google.cloud.exceptions import NotFound
+import os
+import re
+from typing import Union
+
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import googleapiclient.discovery
-import re
+
+from gfluent import BQ
 
 logger = logging.getLogger(__name__)
 
 _GOOGLECREDENTIAL = service_account.Credentials
 
 
-def sheet_service(cls):
-    SCOPES = [
-        'https://www.googleapis.com/auth/spreadsheets.readonly',
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive.readonly',
-        'https://www.googleapis.com/auth/drive.file',
-        'https://www.googleapis.com/auth/drive'
-    ]
-
-    def service_init(arg, **kwargs):
-        if isinstance(arg, str):
-            if ".json" in arg:
-                credentials = service_account.Credentials.from_service_account_file(
-                    arg, scopes=SCOPES)
-                return cls(credentials, **kwargs)
-            else:
-                ValueError(
-                    f"Please provided either FULL path of gcs service account json file or google credential object")
-        elif isinstance(arg, _GOOGLECREDENTIAL):
-            return cls(arg, **kwargs)
-        else:
-            raise ValueError(
-                f"Please provided either FULL path of gcs service account json file or google credential object")
-    return service_init
-
-
-def typechecker(func):
-    """
-        Check function position params' type base on type hint
-    """
-    def wrapper(*args, **kwargs):
-
-        func_anno = func.__annotations__
-
-        if len(args) - 1 != len(func_anno):
-            raise ValueError(
-                f"passed positional parameter is {len(args)}, expected {len(func_anno)+1}")
-
-        for arg in enumerate(args[1:]):
-            if not isinstance(arg[1], list(func_anno.values())[arg[0]]):
-                raise ValueError(
-                    f"parameter `{list(func_anno.keys())[arg[0]]}`` type of `{list(func_anno.values())[arg[0]]}` required for `{func.__name__}`")
-
-        return func(*args, **kwargs)
-    return wrapper
-
-
-@sheet_service
 class Sheet(object):
     """The fluent-style Google Sheet for chaining class
 
@@ -85,10 +37,24 @@ class Sheet(object):
         "bq": "the Bigquery connector"
     }
 
-    def __init__(self, sheet_cred: _GOOGLECREDENTIAL, **kwargs):
-        self._sheet_cred = sheet_cred
+    def __init__(self, obj: Union[_GOOGLECREDENTIAL, str], **kwargs):
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive.readonly',
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/drive'
+        ]
+
+        if isinstance(obj, str) and os.path.isfile(obj):
+            credentials = service_account.Credentials.from_service_account_file(obj, scopes=SCOPES)
+        elif isinstance(obj, _GOOGLECREDENTIAL):
+            credentials = obj
+        else:
+            raise ValueError(
+                f"Please provided either FULL path of gcs service account json file or google credential object")
         self._service = googleapiclient.discovery.build(
-            'sheets', 'v4', credentials=self._sheet_cred)
+            'sheets', 'v4', credentials=credentials)
 
         for attr in kwargs:
             if attr in self.__required_setting.keys():
@@ -96,10 +62,10 @@ class Sheet(object):
             else:
                 logger.warning(f"Ingored argument `{attr}`")
 
-    @ typechecker
     def sheet_id(self, sheet_id: str):
         """Specify the UID of Google Sheet
 
+        :param sheet_id: The UID of Google Spreadsheet
         :type sheet_id: str
         """
 
@@ -107,12 +73,11 @@ class Sheet(object):
 
         return self
 
-    @ typechecker
     def worksheet(self, worksheet: str):
         """Specify the either both sheet name and data range or either of them
 
+        :param worksheet: the sheet name and data range
         :type worksheet: str
-
         """
         if "_sheet_id" not in self.__dict__:
             raise ValueError(
@@ -123,14 +88,13 @@ class Sheet(object):
 
         return self
 
-    @ typechecker
     def bq(self, bq: BQ):
-        """use project id and other params to initial bq object
+        """ use project id and other params to initial bq object
 
-        :type: str
+        :param bq: The ``BQ`` instance
+        :type: :class:`gfluent.BQ`
 
         """
-
         self._bq = bq
 
         return self
@@ -139,7 +103,7 @@ class Sheet(object):
         """load Google Sheet Data to json object
 
 
-        :raises Values error if
+        :raises ValuesError: with following reasons
             - Empty Worksheet
             - No Worksheet Column names
             - wrong column name format, must start letters, numbers, and underscores, start with a letter or underscore
@@ -168,8 +132,7 @@ class Sheet(object):
 
     # TODO: implement drop before load, always drop destination table before loading.
     def load(self, location: str = "US"):
-        """ Load the Data to bigquery
-
+        """Load the Data to BigQuery table
         """
 
         if "_bq" not in self.__dict__ or "_worksheet" not in self.__dict__:

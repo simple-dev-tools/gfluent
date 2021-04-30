@@ -12,32 +12,27 @@ SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
 ]
 
-SA_PATH = getenv("stocksa")
+# use the standard Google key file variable
+SA_PATH = getenv("GOOGLE_APPLICATION_CREDENTIALS")
 googleSheetType = googleapiclient.http.HttpRequest
 
 
 class TestSheet(unittest.TestCase):
-    def test_init_with_SA_Path(self):
+    def test_init_with_sa_path(self):
         sheet = Sheet(SA_PATH)
-
         self.assertEqual(_GOOGLESERVICE, sheet._service.__class__)
 
     def test_init_with_cred(self):
-
         cred = service_account.Credentials.from_service_account_file(
             SA_PATH, scopes=SCOPES)
         sheet = Sheet(cred)
-
-        self.assertEqual(cred, sheet._sheet_cred)
+        self.assertEqual(_GOOGLESERVICE, sheet._service.__class__)
 
     def test_sheet_id_keyword(self):
-
         sheet = Sheet(SA_PATH).sheet_id("abc")
-
         self.assertEqual(sheet._sheet_id, "abc")
 
     def test_worksheet_keyword(self):
-
         sheet = Sheet(SA_PATH).sheet_id("abc").worksheet("A:C")
         self.assertEqual(sheet._worksheet.__class__, googleSheetType)
 
@@ -52,8 +47,6 @@ class TestSheet(unittest.TestCase):
                       )
         self.assertEqual(sheet._sheet_id, "abc")
         self.assertEqual(sheet._worksheet.__class__, googleSheetType)
-        self.assertEqual(bq._project, bq_project)
-        self.assertEqual(bq._table, table)
 
     def test_exception(self):
         with self.assertRaises(ValueError):
