@@ -83,8 +83,15 @@ class Sheet(object):
 
         :param url: The full URL of Google Sheet
         :type url: str
+        :return self with _sheet_id abstracted from url
         """
-        pass
+        RE_URL = r"/spreadsheets/d/([a-zA-Z0-9-_]+)"
+        if not isinstance(url, str) or not re.findall(RE_URL, url):
+            raise ValueError("Please input valid url")
+
+        self._sheet_id = re.findall(RE_URL, url)[0]
+
+        return self
 
     def worksheet(self, worksheet: str):
         """Specify the worksheet name

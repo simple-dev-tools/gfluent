@@ -15,6 +15,7 @@ SCOPES = [
 # use the standard Google key file variable
 SA_PATH = getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SHEET_ID = "a-look-like-sheet-id-string"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/"
 googleSheetType = googleapiclient.http.HttpRequest
 
 
@@ -31,6 +32,10 @@ class TestSheet(unittest.TestCase):
 
     def test_sheet_id_keyword(self):
         sheet = Sheet(SA_PATH).sheet_id(SHEET_ID)
+        self.assertEqual(sheet._sheet_id, SHEET_ID)
+
+    def test_sheet_url(self):
+        sheet = Sheet(SA_PATH).url(SHEET_URL)
         self.assertEqual(sheet._sheet_id, SHEET_ID)
 
     def test_worksheet_keyword(self):
