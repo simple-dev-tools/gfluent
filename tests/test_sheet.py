@@ -14,6 +14,7 @@ SCOPES = [
 
 # use the standard Google key file variable
 SA_PATH = getenv("GOOGLE_APPLICATION_CREDENTIALS")
+SHEET_ID = "a-look-like-sheet-id-string"
 googleSheetType = googleapiclient.http.HttpRequest
 
 
@@ -29,11 +30,11 @@ class TestSheet(unittest.TestCase):
         self.assertEqual(_GOOGLESERVICE, sheet._service.__class__)
 
     def test_sheet_id_keyword(self):
-        sheet = Sheet(SA_PATH).sheet_id("abc")
-        self.assertEqual(sheet._sheet_id, "abc")
+        sheet = Sheet(SA_PATH).sheet_id(SHEET_ID)
+        self.assertEqual(sheet._sheet_id, SHEET_ID)
 
     def test_worksheet_keyword(self):
-        sheet = Sheet(SA_PATH).sheet_id("abc").worksheet("A:C")
+        sheet = Sheet(SA_PATH).sheet_id(SHEET_ID).worksheet("data!A:C")
         self.assertEqual(sheet._worksheet.__class__, googleSheetType)
 
     def test_with_kwargs(self):
@@ -41,23 +42,16 @@ class TestSheet(unittest.TestCase):
         table = "dataset.table"
         bq = BQ(bq_project, table=table)
         sheet = Sheet(SA_PATH,
-                      sheet_id="abc",
+                      sheet_id=SHEET_ID,
                       worksheet="A:C",
                       bq=bq
                       )
-        self.assertEqual(sheet._sheet_id, "abc")
+        self.assertEqual(sheet._sheet_id, SHEET_ID)
         self.assertEqual(sheet._worksheet.__class__, googleSheetType)
 
-    def test_exception(self):
-        with self.assertRaises(ValueError):
+    def test_invalid_sheet_id(self):
+        with self.assertRaises(TypeError):
             _ = Sheet(SA_PATH).sheet_id(123)
 
-        with self.assertRaises(ValueError):
-            _ = Sheet(SA_PATH).worksheet("132")
-
-        with self.assertRaises(ValueError):
-            _ = Sheet(SA_PATH,
-                      sheet_id="abc",
-                      worksheet="A:C",
-                      bq="bq"
-                      )
+        with self.assertRaises(TypeError):
+            _ = Sheet(SA_PATH).sheet_id("too-short-id")

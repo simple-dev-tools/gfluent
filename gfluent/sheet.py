@@ -68,10 +68,21 @@ class Sheet(object):
         :param sheet_id: The UID of Google Spreadsheet
         :type sheet_id: str
         """
+        if not isinstance(sheet_id, str) or len(sheet_id) < 15:
+            raise TypeError(f"{sheet_id} is not a valid Google sheet id")
 
         self._sheet_id = sheet_id
 
         return self
+
+    def url(self, url: str):
+        """Pass the Google sheet URL
+
+        :param url: The full URL of Google Sheet
+        :type url: str
+        """
+        pass
+
 
     def worksheet(self, worksheet: str):
         """Specify the either both sheet name and data range or either of them

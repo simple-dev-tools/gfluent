@@ -10,10 +10,12 @@ help:
 test-ut: ## run unit test
 	pytest $(PYTEST_OPTION) tests/test_gcs.py
 	pytest $(PYTEST_OPTION) tests/test_bq.py
+	pytest $(PYTEST_OPTION) tests/test_sheet.py
 
 test-sit: ## run sit test
 	pytest $(PYTEST_OPTION) tests/test_gcs_integration.py
 	pytest $(PYTEST_OPTION) tests/test_bq_integration.py
+	pytest $(PYTEST_OPTION) tests/test_sheet_integration.py
 	pytest $(PYTEST_OPTION) tests/test_gcs_and_bq.py
 
 docs: ## generate API document

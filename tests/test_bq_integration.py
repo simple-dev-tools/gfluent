@@ -8,7 +8,7 @@ from gfluent import BQ
 
 class TestBQIntegration():
     def setup_class(self):
-        self.dataset_name = "testing_bq"
+        self.dataset_name = "gfluent_bq_dataset"
         self.project_id = os.environ.get("PROJECT_ID")
 
         self.sql = """
