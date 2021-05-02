@@ -10,6 +10,7 @@ from gfluent import BQ
 
 TEST_UID = "1M917dp2-RhI5cC8BHAIp2yXDSuw4uaTzCBTOWmVXd5w"
 
+
 class TestSheetIntegration():
     def setup_class(self):
         self.dataset_name = "gfluent_sheet_dataset"
@@ -37,5 +38,3 @@ class TestSheetIntegration():
         ).query()
 
         assert rows.total_rows == 3
-
-

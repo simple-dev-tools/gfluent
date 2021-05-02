@@ -15,6 +15,7 @@ SCOPES = [
 # use the standard Google key file variable
 SA_PATH = getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SHEET_ID = "a-look-like-sheet-id-string"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/"
 googleSheetType = googleapiclient.http.HttpRequest
 
 
@@ -33,9 +34,20 @@ class TestSheet(unittest.TestCase):
         sheet = Sheet(SA_PATH).sheet_id(SHEET_ID)
         self.assertEqual(sheet._sheet_id, SHEET_ID)
 
+    def test_sheet_url(self):
+        sheet = Sheet(SA_PATH).url(SHEET_URL)
+        self.assertEqual(sheet._sheet_id, SHEET_ID)
+
     def test_worksheet_keyword(self):
-        sheet = Sheet(SA_PATH).sheet_id(SHEET_ID).worksheet("data!A:C")
-        self.assertEqual(sheet._worksheet.__class__, googleSheetType)
+
+        sheet = Sheet(SA_PATH).sheet_id(SHEET_ID).worksheet("Sheet1")
+        self.assertEqual(sheet._worksheet, "Sheet1")
+
+    def test_range_keyword(self):
+
+        sheet = Sheet(SA_PATH).sheet_id(
+            SHEET_ID).worksheet("Sheet1").range("A:C")
+        self.assertEqual(sheet._range, "A:C")
 
     def test_with_kwargs(self):
         bq_project = 'here-is-project-id'
@@ -43,15 +55,28 @@ class TestSheet(unittest.TestCase):
         bq = BQ(bq_project, table=table)
         sheet = Sheet(SA_PATH,
                       sheet_id=SHEET_ID,
-                      worksheet="A:C",
+                      worksheet="Sheet1",
+                      range="A:C",
                       bq=bq
                       )
         self.assertEqual(sheet._sheet_id, SHEET_ID)
-        self.assertEqual(sheet._worksheet.__class__, googleSheetType)
+        self.assertEqual(sheet._worksheet, "Sheet1")
+        self.assertEqual(sheet._range, "A:C")
+        self.assertEqual(bq._table, table)
 
     def test_invalid_sheet_id(self):
         with self.assertRaises(TypeError):
             _ = Sheet(SA_PATH).sheet_id(123)
 
+        with self.assertRaises(ValueError):
+            _ = Sheet(SA_PATH).worksheet("132")
+
+        with self.assertRaises(ValueError):
+            _ = Sheet(SA_PATH).sheet_id(SHEET_ID).range("A:C")
+
         with self.assertRaises(TypeError):
-            _ = Sheet(SA_PATH).sheet_id("too-short-id")
+            _ = Sheet(SA_PATH,
+                      sheet_id=SHEET_ID,
+                      worksheet="Sheet1",
+                      bq="bq"
+                      )
