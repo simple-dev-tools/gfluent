@@ -3,11 +3,12 @@
 import logging
 import os
 import re
-from typing import Union
+from typing import Union, List
 
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import googleapiclient.discovery
+from google.api_core.exceptions import Conflict
 
 from gfluent import BQ
 
@@ -36,7 +37,7 @@ class Sheet(object):
         "worksheet": "The name of the google worksheet",
         "range": "the worksheet range",
         "bq": "the Bigquery connector",
-
+        "schema": "The Bigquery Schema for the destination table"
     }
 
     def __init__(self, obj: Union[_GOOGLECREDENTIAL, str], **kwargs):
@@ -93,12 +94,26 @@ class Sheet(object):
 
         return self
 
+    def schema(self, schema: List[bigquery.SchemaField]):
+        """Set the schema for desitnation table
+
+        :param schema: The list of fields
+        :type schema: List[bigquery.SchemaField]
+        """
+
+        self._schema = schema
+
+        return self
+
     def worksheet(self, worksheet: str):
         """Specify the worksheet name with or without range
 
+        The first row in the range is considered as ``header row``, and it is not
+        able to be skipped.
+
         Valid values: ``sheet_name!A1:B3`` or just ``sheet_name``
 
-        :param worksheet: the sheet name and data range
+        :param worksheet: The worksheet with range or only worksheet name
         :type worksheet: str
         """
         if "_sheet_id" not in self.__dict__:
@@ -114,6 +129,9 @@ class Sheet(object):
 
         The client library doesn't check if the range is valid, if any syntax
         error with the range, Google Sheet will raise the exception
+
+        The first row in the range is considered as ``header row``, and it is not
+        able to be skipped.
 
         :type range: str
         """
@@ -143,7 +161,12 @@ class Sheet(object):
 
         self._bq = bq
 
+        # pass the schema to BQ
+        if "_schema" in self.__dict__:
+            self._bq.schema(self._schema)
+
         return self
+
 
     def _worksheet_request(self):
         """To create the google sheet HttpReqeust
@@ -158,13 +181,6 @@ class Sheet(object):
 
     def _load(self):
         """load Google Sheet Data to json object
-
-
-        :raises ValuesError: with following reasons
-            - Empty Worksheet
-            - No Worksheet Column names
-            - wrong column name format, must start letters, numbers, and underscores, start with a letter or underscore
-
         """
 
         regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -179,17 +195,35 @@ class Sheet(object):
 
         illegal_word = [word for word in data[0] if not regexp.search(word)]
 
-        if illegal_word:
-            raise ValueError(
-                f"Field Name`{illegal_word[0]}` is illegal Fields must contain only letters, numbers, and underscores, start with a letter or underscore.")
-
         self._json_to_be_load = []
-        for d in data[1:]:
-            self._json_to_be_load.append(dict(zip(data[0], d)))
 
-    # TODO: implement drop before load, always drop destination table before loading.
+        if "_schema" not in self.__dict__:
+            if illegal_word:
+                raise ValueError(
+                    f"Field Name`{illegal_word[0]}` is illegal Fields must contain only letters, numbers, and underscores, start with a letter or underscore.")
+
+            for d in data[1:]:
+                self._json_to_be_load.append(dict(zip(data[0], d)))
+        else:
+            if len(data[0]) != len(self._schema):
+                raise ValueError(f"schema defines {len(self._schema)} columns, but header has {len(data[0])} columns")
+            
+            headers = [x.name for x in self._schema]
+            for d in data[1:]:
+                self._json_to_be_load.append(dict(zip(headers, d)))
+
+
     def load(self, location: str = "US"):
         """Load the Data to BigQuery table
+
+        Please use ``.bq.table()`` to set the destination table name, and the table
+        must not exists, otherwise the ``Conflict`` exception will be raised.
+
+        :param location: The BigQuery location, default is ``US``
+        :type: str
+
+        :raises google.api_core.exceptions.Conflict: table already 
+            exists exception.
         """
 
         if "_bq" not in self.__dict__ or "_worksheet" not in self.__dict__:
@@ -202,11 +236,15 @@ class Sheet(object):
 
         self._load()
 
+        if self._bq.is_exist():
+            raise Conflict(f"{self._bq._table} exists")
+
         if "_schema" not in self._bq.__dict__:
 
             job_config = bigquery.LoadJobConfig(
                 autodetect=True,
-                source_format=self._bq._format
+                source_format=self._bq._format,
+                
             )
 
         else:
