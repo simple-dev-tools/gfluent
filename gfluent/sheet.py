@@ -19,17 +19,41 @@ _GOOGLECREDENTIAL = service_account.Credentials
 
 class Sheet(object):
     """The fluent-style Google Sheet for chaining class
+    
+    This ``Sheet`` class provides the interface to load Spreadsheet data to
+    Bigquery table even in one line. The destiniation table must be a new table,
+    and not exist in the same dataset.
 
-    Example:
+    Examples:
 
     .. code-block:: python
 
-        # read the data from google sheet to tables
-        sheet = Sheet('google-sa-credential-or-path')
-        sheet.sheet_id('your-sheet-id')
-        .worksheet('workshet-tab-and-range')
-        .bq('bq-projectid', table="your-dataset-table-name", schema="your-schema")
-        .load()
+        # use the headers from spread sheet and auto detect the type
+        (
+            Sheet('google-sa-credential-or-path')
+            .sheet_id('your-sheet-id')
+            .worksheet('sheet_name!A1:B100')    # provide the range in one-go
+            .bq(BQ(projec_id='project-id', table='dataset.table')
+        ).load()
+
+        # use given schema definition
+        schemas = [
+            bigquery.SchemeField(...),
+            bigquery.SchemeField(...),
+            bigquery.SchemeField(...),
+        ]
+        (
+            Sheet('google-sa-credential-or-path')
+            .url('google-sheet-url') # the sheet id will be extracted automatically
+            .worksheet('sheet_name')
+            .range('A1:B100') # provide the range in separate call
+            .bq(BQ(projec_id='project-id', table='dataset.table')
+            .schema(schemas)
+        ).load()
+
+    :param credential_or_path: the ``service_account.Credentials` object or file path
+    :type credential_or_path: Union[Credentials, str]
+    
     """
 
     __required_setting = {
@@ -40,7 +64,7 @@ class Sheet(object):
         "schema": "The Bigquery Schema for the destination table"
     }
 
-    def __init__(self, obj: Union[_GOOGLECREDENTIAL, str], **kwargs):
+    def __init__(self, credential_or_path: Union[_GOOGLECREDENTIAL, str], **kwargs):
         SCOPES = [
             'https://www.googleapis.com/auth/spreadsheets.readonly',
             'https://www.googleapis.com/auth/spreadsheets',
@@ -49,11 +73,11 @@ class Sheet(object):
             'https://www.googleapis.com/auth/drive'
         ]
 
-        if isinstance(obj, str) and os.path.isfile(obj):
+        if isinstance(credential_or_path, str) and os.path.isfile(credential_or_path):
             credentials = service_account.Credentials.from_service_account_file(
-                obj, scopes=SCOPES)
+                credential_or_path, scopes=SCOPES)
         elif isinstance(obj, _GOOGLECREDENTIAL):
-            credentials = obj
+            credentials = credential_or_path
         else:
             raise ValueError(
                 f"Please provided either FULL path of gcs service account json file or google credential object")
@@ -84,7 +108,6 @@ class Sheet(object):
 
         :param url: The full URL of Google Sheet
         :type url: str
-        :return self with _sheet_id abstracted from url
         """
         RE_URL = r"/spreadsheets/d/([a-zA-Z0-9-_]+)"
         if not isinstance(url, str) or not re.findall(RE_URL, url):
