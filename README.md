@@ -1,8 +1,9 @@
 # Google Cloud Fluent Client
 
-This is a wrapper on Google Cloud Platform Python SDK client library. It provides a fluent-style to
-call the methods. The idea is, there are too many parameters for Google `Storage` and `BigQuery`,
+This is a tiny wrapper on Google Cloud Platform Python SDK client library. It provides a fluent-style
+to call the methods. The idea is, there are too many parameters for Google `Storage` and `BigQuery`,
 however, most of them are ok to be set as default value. 
+
 
 This library is good for Data Engineer to create data pipeline based on `BigQuery`, here is an example
 of a end to end user case.
@@ -89,10 +90,32 @@ for row in rows:
 ```
 
 
+Another example of loading data from `Google Sheet` to `BigQuery`,
+
+```python
+import os
+from gfluent import Sheet, BQ
+
+project_id = 'your project id'
+sheet_id = 'your Google sheet id`
+
+# assume the data is on the sheet `data` and range is `A1:B4`
+sheet = Sheet(
+    os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+).sheet_id(sheet_id).worksheet("data!A1:B4")
+
+bq = BQ(project=project_id).table("target_dataset.table")
+
+sheet.bq(bq).load(location="EU")
+```
+
 Here is the [document](https://gfluent.readthedocs.io/en/latest/#), and please refer
 to the test cases to see more real examples.
 
-This project is in the inital phase.
+
+
+
+**This project is in the inital phase.**
 
 
 ## Installation

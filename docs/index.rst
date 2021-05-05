@@ -23,10 +23,13 @@ It provides a fluent-style to call the methods, here is an example,
 API Reference
 =============
 
-.. autoclass:: gfluent.bq.BQ
+.. autoclass:: gfluent.BQ
     :members:
 
-.. autoclass:: gfluent.gcs.GCS
+.. autoclass:: gfluent.GCS
+    :members:
+
+.. autoclass:: gfluent.Sheet
     :members:
 
 

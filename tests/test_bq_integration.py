@@ -1,14 +1,14 @@
 import os
-import unittest
 
+import pytest
 from google.cloud import bigquery
 
 from gfluent import BQ
 
 
-class TestBQIntegration(unittest.TestCase):
-    def setUp(self):
-        self.dataset_name = "testing_bq"
+class TestBQIntegration():
+    def setup_class(self):
+        self.dataset_name = "gfluent_bq_dataset"
         self.project_id = os.environ.get("PROJECT_ID")
 
         self.sql = """
@@ -28,13 +28,12 @@ class TestBQIntegration(unittest.TestCase):
         self.bq.delete_dataset(self.dataset_name)
         self.bq.create_dataset(self.dataset_name, location="EU")
 
-    def tearDown(self):
+    def teardown_class(self):
         self.bq.delete_dataset(self.dataset_name)
 
     def test_query(self):
         rows = self.bq.sql(self.sql).query()
-
-        self.assertEqual(rows.total_rows, 5)
+        assert rows.total_rows == 5
 
     def test_query_load(self):
 
@@ -46,7 +45,7 @@ class TestBQIntegration(unittest.TestCase):
                     )
 
         # should only 5 rows
-        self.assertEqual(row_count, 5)
+        assert row_count == 5
 
         # load again with append
         row_count = (
@@ -59,42 +58,63 @@ class TestBQIntegration(unittest.TestCase):
         
         rows = BQ(self.project_id).sql(f"select * from {self.table_name}").query()
 
-        self.assertEqual(10, rows.total_rows)
+        assert rows.total_rows == 10
+
 
     def test_truncate(self):
-
-        # create the table first
-        row_count = (self.bq
-                    .table(self.table_name)
-                    .sql(self.sql)
-                    .query()
-                    )
-
-        # truncate it
         self.bq.table(self.table_name).truncate()
 
         rows = BQ(self.project_id).sql(f"select * from {self.table_name}").query()
 
-        self.assertEqual(0, rows.total_rows)
+        assert rows.total_rows == 0
 
     def test_delete(self):
-        # create the table first
+        self.bq.delete()
+        assert self.bq.is_exist() is False
+
+    def test_drop(self):
         row_count = (self.bq
                     .table(self.table_name)
                     .sql(self.sql)
                     .query()
                     )
+        assert self.bq.is_exist() is True
 
-        self.bq.delete()
-
-        self.assertFalse(self.bq.is_exist())
+        self.bq.drop()
+        assert self.bq.is_exist() is False
 
     def test_is_exists(self):
-        # create the table first
+        assert self.bq.is_exist() is False
         row_count = (self.bq
                     .table(self.table_name)
                     .sql(self.sql)
                     .query()
                     )
+        assert self.bq.is_exist() is True
+        assert row_count == 5
 
-        self.assertTrue(BQ(self.project_id).table(self.table_name).is_exist())
+    def test_create_table(self):
+
+        table = f"{self.dataset_name}.students"
+        schema = [
+            bigquery.SchemaField(
+                name="name",
+                field_type="STRING",
+                mode="REQUIRED",
+                description="student name"
+            ),
+            bigquery.SchemaField(
+                name="age",
+                field_type="INTEGER",
+                mode="REQUIRED",
+                description="student age"
+            ),
+        ]
+        bq = BQ(project=self.project_id).table(table).schema(schema)
+
+        assert bq.is_exist() is False
+
+        bq.create()
+
+        assert bq.is_exist() is True
+
