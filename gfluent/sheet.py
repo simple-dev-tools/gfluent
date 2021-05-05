@@ -76,7 +76,7 @@ class Sheet(object):
         if isinstance(credential_or_path, str) and os.path.isfile(credential_or_path):
             credentials = service_account.Credentials.from_service_account_file(
                 credential_or_path, scopes=SCOPES)
-        elif isinstance(obj, _GOOGLECREDENTIAL):
+        elif isinstance(credential_or_path, _GOOGLECREDENTIAL):
             credentials = credential_or_path
         else:
             raise ValueError(
