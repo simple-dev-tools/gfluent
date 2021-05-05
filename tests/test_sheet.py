@@ -64,6 +64,17 @@ class TestSheet(unittest.TestCase):
         self.assertEqual(sheet._range, "A:C")
         self.assertEqual(bq._table, table)
 
+    def test_call_range_first_exception(self):
+        sheet = Sheet(SA_PATH).sheet_id(SHEET_ID)
+        with self.assertRaises(ValueError):
+            sheet.range("B3:B8")
+
+    def test_twice_range_exception(self):
+        sheet = Sheet(SA_PATH).sheet_id(SHEET_ID).worksheet("Sheet1!A2:C6")
+        with self.assertRaises(ValueError):
+            sheet.range("B3:B8")
+
+
     def test_invalid_sheet_id(self):
         with self.assertRaises(TypeError):
             _ = Sheet(SA_PATH).sheet_id(123)

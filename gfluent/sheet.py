@@ -94,7 +94,9 @@ class Sheet(object):
         return self
 
     def worksheet(self, worksheet: str):
-        """Specify the worksheet name
+        """Specify the worksheet name with or without range
+
+        Valid values: ``sheet_name!A1:B3`` or just ``sheet_name``
 
         :param worksheet: the sheet name and data range
         :type worksheet: str
@@ -108,14 +110,23 @@ class Sheet(object):
         return self
 
     def range(self, range: str):
-        """Specify the worksheet data range
+        """Specify the worksheet data range in A1:B4 form
+
+        The client library doesn't check if the range is valid, if any syntax
+        error with the range, Google Sheet will raise the exception
 
         :type range: str
         """
 
         if "_worksheet" not in self.__dict__:
             raise ValueError(
-                ".worksheet() must be called before run")
+                ".range() should be called only after .worksheet() has been called"
+            )
+
+        if '!' in self._worksheet:
+            raise ValueError(
+                f"{self._worksheet} - range already included in the worksheet")
+
         self._range = range
 
         return self
