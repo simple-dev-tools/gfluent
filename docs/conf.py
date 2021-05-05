@@ -23,7 +23,7 @@ author = 'Zhong Dai'
 
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.10'
+release = '0.1.13'
 
 
 # -- General configuration ---------------------------------------------------
