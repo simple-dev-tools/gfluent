@@ -18,21 +18,12 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'gfluent'
-<<<<<<< HEAD
-copyright = '2021, Zhong Dai'
-author = 'Zhong Dai'
-
-
-# The full version, including alpha/beta/rc tags
-release = '0.1.13'
-=======
 copyright = '2021, Simple Dev Tools'
 author = 'Simple Dev Tools'
 
 
 # The full version, including alpha/beta/rc tags
 release = '0.1.14'
->>>>>>> 6937882 (bump to 0.1.14)
 
 
 # -- General configuration ---------------------------------------------------
