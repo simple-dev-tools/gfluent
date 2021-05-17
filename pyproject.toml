@@ -1,22 +1,11 @@
 [tool.poetry]
 name = "gfluent"
-<<<<<<< HEAD
-version = "0.1.13"
-description = "A fluent API for Google Cloud Python Client"
-authors = ["Zhong Dai <zhongdai.au@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-documentation = "https://gfluent.readthedocs.io/en/latest/#"
-homepage = "https://github.com/zhongdai/gfluent/releases"
-repository = "https://github.com/zhongdai/gfluent"
-=======
 version = "0.1.14"
 description = "A fluent API for Google Cloud Python Client"
 authors = ["Simple Dev Tools"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/simple-dev-tools/gfluent"
->>>>>>> 6937882 (bump to 0.1.14)
 keywords = ["GCP", "BigQuery", "GCS", "Fluent"]
 
 
