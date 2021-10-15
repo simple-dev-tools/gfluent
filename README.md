@@ -1,5 +1,7 @@
 # Google Cloud Fluent Client
 
+[![UT & SIT](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml/badge.svg?branch=develop)](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml)
+
 This is a tiny wrapper on Google Cloud Platform Python SDK client library. It provides a fluent-style
 to call the methods. The idea is, there are too many parameters for Google `Storage` and `BigQuery`,
 however, most of them are ok to be set as default value. 
