@@ -2,20 +2,26 @@
 
 [![UT & SIT](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml/badge.svg?branch=develop)](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml)
 
-This is a tiny wrapper on Google Cloud Platform Python SDK client library. It provides a fluent-style
-to call the methods. The idea is, there are too many parameters for Google `Storage` and `BigQuery`,
-however, most of them are ok to be set as default value. 
+This is a lightweight wrapper on top of Google Cloud Platform Python SDK client library. It provides
+a fluent-style to call the methods. The motivation is, too many parameters for GCP `Storage` and
+`BigQuery` library, and most of them are ok to be set as default values. 
+
+This wrapper is suitable for Data Engineers to quickly create simple data pipeline based on GCP
+`BigQuery` and `Storage`, here are two examples.
 
 
-This library is good for Data Engineer to create data pipeline based on `BigQuery`, here is an example
-of a end to end user case.
+## Build Data Pipeline on BigQuery
 
-You are asked to
+You (A Data Engineer) are asked to,
 
-1 - load multiple files from your local drive to GCS
-2 - load those files to a BigQuery table
-3 - run another query on that table by joining other tables, store the result to another table
+- load multiple `json` files from your local drive to GCS
 
+- import those files to a BigQuery staging table
+
+- run another query based on the staging table by joining existing tables, and store the result to another table
+
+
+To accomplish the task, here are the source code,
 
 ```python
 
@@ -92,7 +98,7 @@ for row in rows:
 ```
 
 
-Another example of loading data from `Google Sheet` to `BigQuery`,
+## Loading data from Spreadsheet to BigQuery
 
 ```python
 import os
@@ -111,13 +117,10 @@ bq = BQ(project=project_id).table("target_dataset.table")
 sheet.bq(bq).load(location="EU")
 ```
 
-Here is the [document](https://gfluent.readthedocs.io/en/latest/#), and please refer
-to the test cases to see more real examples.
+## Documents
 
-
-
-
-**This project is in the inital phase.**
+Here is the [document](https://gfluent.readthedocs.io/en/latest/#), and please refer to the test
+cases to see more real examples.
 
 
 ## Installation
@@ -138,12 +141,8 @@ pip install dist/gfluent-<versoin>.tar.gz
 ```
 
 
-## Testing
+## Contribution
 
-The unit test and integration test are actually using the real GCP project, so you
-cannot execute the integration test if you don't have the GCP project setup.
-
-If you really want to run the test cases, you need to set up a free tier project, and
-set the project ID as `PROJECT_ID` enviroment, you also need to expose the GCP JSON key
-of the service account with correct permission of read/write `BigQuery` and `GCS`.
-
+Any kinds of contribution is welcome, including report bugs, add feature or enhuance document. Please
+be noted, the Integration Test is using a real GCP project, and you may not have the permission to
+set up the test data.
