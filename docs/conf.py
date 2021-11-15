@@ -23,7 +23,7 @@ author = 'Simple Dev Tools'
 
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.14'
+release = '0.1.16'
 
 
 # -- General configuration ---------------------------------------------------

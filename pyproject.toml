@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gfluent"
-version = "0.1.14"
+version = "0.1.16"
 description = "A fluent API for Google Cloud Python Client"
 authors = ["Simple Dev Tools"]
 license = "MIT"
