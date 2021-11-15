@@ -19,7 +19,7 @@ _GOOGLECREDENTIAL = service_account.Credentials
 
 class Sheet(object):
     """The fluent-style Google Sheet for chaining class
-    
+
     This ``Sheet`` class provides the interface to load Spreadsheet data to
     Bigquery table even in one line. The destiniation table must be a new table,
     and not exist in the same dataset.
@@ -44,7 +44,8 @@ class Sheet(object):
         ]
         (
             Sheet('google-sa-credential-or-path')
-            .url('google-sheet-url') # the sheet id will be extracted automatically
+            # the sheet id will be extracted automatically
+            .url('google-sheet-url')
             .worksheet('sheet_name')
             .range('A1:B100') # provide the range in separate call
             .bq(BQ(projec_id='project-id', table='dataset.table')
@@ -53,7 +54,7 @@ class Sheet(object):
 
     :param credential_or_path: the ``service_account.Credentials` object or file path
     :type credential_or_path: Union[Credentials, str]
-    
+
     """
 
     __required_setting = {
@@ -190,7 +191,6 @@ class Sheet(object):
 
         return self
 
-
     def _worksheet_request(self):
         """To create the google sheet HttpReqeust
         """
@@ -229,12 +229,15 @@ class Sheet(object):
                 self._json_to_be_load.append(dict(zip(data[0], d)))
         else:
             if len(data[0]) != len(self._schema):
-                raise ValueError(f"schema defines {len(self._schema)} columns, but header has {len(data[0])} columns")
-            
+                raise ValueError(
+                    f"schema defines {len(self._schema)} columns, but header has {len(data[0])} columns")
+
             headers = [x.name for x in self._schema]
             for d in data[1:]:
+                for ind, value in enumerate(d):
+                    if isinstance(value, str):
+                        d[ind] = value.strip()
                 self._json_to_be_load.append(dict(zip(headers, d)))
-
 
     def load(self, location: str = "US"):
         """Load the Data to BigQuery table
@@ -267,7 +270,7 @@ class Sheet(object):
             job_config = bigquery.LoadJobConfig(
                 autodetect=True,
                 source_format=self._bq._format,
-                
+
             )
 
         else:
