@@ -1,6 +1,6 @@
 __author__ = "Zhong Dai"
 __email__ = "zhdai@woolworths.com.au"
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 from .bq import BQ
