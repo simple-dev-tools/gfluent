@@ -3,12 +3,13 @@
 import logging
 import os
 import re
-from typing import Union, List
+from typing import List
+from typing import Union
 
-from google.cloud import bigquery
-from google.oauth2 import service_account
 import googleapiclient.discovery
 from google.api_core.exceptions import Conflict
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
 from gfluent import BQ
 
@@ -19,7 +20,7 @@ _GOOGLECREDENTIAL = service_account.Credentials
 
 class Sheet(object):
     """The fluent-style Google Sheet for chaining class
-    
+
     This ``Sheet`` class provides the interface to load Spreadsheet data to
     Bigquery table even in one line. The destiniation table must be a new table,
     and not exist in the same dataset.
@@ -44,16 +45,17 @@ class Sheet(object):
         ]
         (
             Sheet('google-sa-credential-or-path')
-            .url('google-sheet-url') # the sheet id will be extracted automatically
+            # the sheet id will be extracted automatically
+            .url('google-sheet-url')
             .worksheet('sheet_name')
             .range('A1:B100') # provide the range in separate call
             .bq(BQ(projec_id='project-id', table='dataset.table')
             .schema(schemas)
         ).load()
 
-    :param credential_or_path: the ``service_account.Credentials` object or file path
+    :param credential_or_path: the ``service_account.Credentials`` object or file path
     :type credential_or_path: Union[Credentials, str]
-    
+
     """
 
     __required_setting = {
@@ -61,28 +63,31 @@ class Sheet(object):
         "worksheet": "The name of the google worksheet",
         "range": "the worksheet range",
         "bq": "the Bigquery connector",
-        "schema": "The Bigquery Schema for the destination table"
+        "schema": "The Bigquery Schema for the destination table",
     }
 
     def __init__(self, credential_or_path: Union[_GOOGLECREDENTIAL, str], **kwargs):
         SCOPES = [
-            'https://www.googleapis.com/auth/spreadsheets.readonly',
-            'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive.readonly',
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/drive'
+            "https://www.googleapis.com/auth/spreadsheets.readonly",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive",
         ]
 
         if isinstance(credential_or_path, str) and os.path.isfile(credential_or_path):
             credentials = service_account.Credentials.from_service_account_file(
-                credential_or_path, scopes=SCOPES)
+                credential_or_path, scopes=SCOPES
+            )
         elif isinstance(credential_or_path, _GOOGLECREDENTIAL):
             credentials = credential_or_path
         else:
             raise ValueError(
-                f"Please provided either FULL path of gcs service account json file or google credential object")
+                "A full path of gcs service account json file or google credential object"
+            )
         self._service = googleapiclient.discovery.build(
-            'sheets', 'v4', credentials=credentials)
+            "sheets", "v4", credentials=credentials
+        )
 
         for attr in kwargs:
             if attr in self.__required_setting.keys():
@@ -96,7 +101,7 @@ class Sheet(object):
         :param sheet_id: The UID of Google Spreadsheet
         :type sheet_id: str
         """
-        if not isinstance(sheet_id, str) or len(sheet_id) < 15:
+        if not isinstance(sheet_id, str) or len(sheet_id) < 40:
             raise TypeError(f"{sheet_id} is not a valid Google sheet id")
 
         self._sheet_id = sheet_id
@@ -140,8 +145,7 @@ class Sheet(object):
         :type worksheet: str
         """
         if "_sheet_id" not in self.__dict__:
-            raise ValueError(
-                ".sheet_id() must be called before run")
+            raise ValueError(".sheet_id() must be called before call .worksheet()")
 
         self._worksheet = worksheet
 
@@ -164,16 +168,17 @@ class Sheet(object):
                 ".range() should be called only after .worksheet() has been called"
             )
 
-        if '!' in self._worksheet:
+        if "!" in self._worksheet:
             raise ValueError(
-                f"{self._worksheet} - range already included in the worksheet")
+                f"{self._worksheet} - range already included in the worksheet"
+            )
 
         self._range = range
 
         return self
 
     def bq(self, bq: BQ):
-        """ use project id and other params to initial bq object
+        """use project id and other params to initial bq object
 
         :param bq: The ``BQ`` instance
         :type: :class:`gfluent.BQ`
@@ -190,23 +195,23 @@ class Sheet(object):
 
         return self
 
-
     def _worksheet_request(self):
-        """To create the google sheet HttpReqeust
-        """
+        """To create the google sheet HttpReqeust"""
         if "_range" in self.__dict__:
             _worksheet_and_range = self._worksheet + "!" + self._range
         else:
             _worksheet_and_range = self._worksheet
 
-        return self._service.spreadsheets().values().get(
-            spreadsheetId=self._sheet_id, range=_worksheet_and_range)
+        return (
+            self._service.spreadsheets()
+            .values()
+            .get(spreadsheetId=self._sheet_id, range=_worksheet_and_range)
+        )
 
     def _load(self):
-        """load Google Sheet Data to json object
-        """
+        """load Google Sheet Data to json object"""
 
-        regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+        regexp = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
         sheet_result = self._worksheet_request().execute()
         if "values" not in sheet_result:
@@ -222,19 +227,22 @@ class Sheet(object):
 
         if "_schema" not in self.__dict__:
             if illegal_word:
-                raise ValueError(
-                    f"Field Name`{illegal_word[0]}` is illegal Fields must contain only letters, numbers, and underscores, start with a letter or underscore.")
+                raise ValueError(f"Field Name`{illegal_word[0]}` is illegal header")
 
             for d in data[1:]:
                 self._json_to_be_load.append(dict(zip(data[0], d)))
         else:
             if len(data[0]) != len(self._schema):
-                raise ValueError(f"schema defines {len(self._schema)} columns, but header has {len(data[0])} columns")
-            
+                raise ValueError(
+                    f"Schema defines {len(self._schema)} columns, header has {len(data[0])} columns"
+                )
+
             headers = [x.name for x in self._schema]
             for d in data[1:]:
+                for ind, value in enumerate(d):
+                    if isinstance(value, str):
+                        d[ind] = value.strip()
                 self._json_to_be_load.append(dict(zip(headers, d)))
-
 
     def load(self, location: str = "US"):
         """Load the Data to BigQuery table
@@ -245,17 +253,14 @@ class Sheet(object):
         :param location: The BigQuery location, default is ``US``
         :type: str
 
-        :raises google.api_core.exceptions.Conflict: table already 
+        :raises google.api_core.exceptions.Conflict: table already
             exists exception.
         """
 
         if "_bq" not in self.__dict__ or "_worksheet" not in self.__dict__:
-            raise ValueError(
-                ".worksheet() and .bq() must be called before run")
+            raise ValueError(".worksheet() and .bq() must be called before run")
         if "_table" not in self._bq.__dict__:
-            raise ValueError(
-                "bigquery table must be specify for the load"
-            )
+            raise ValueError("bigquery table must be specify for the load")
 
         self._load()
 
@@ -267,18 +272,21 @@ class Sheet(object):
             job_config = bigquery.LoadJobConfig(
                 autodetect=True,
                 source_format=self._bq._format,
-                
             )
 
         else:
             job_config = bigquery.LoadJobConfig(
-                schema=self._bq._schema,
-                source_format=self._bq._format
+                schema=self._bq._schema, source_format=self._bq._format
             )
         load_job = self._bq._client.load_table_from_json(
-            self._json_to_be_load, self._bq._table, location=location, job_config=job_config)
+            self._json_to_be_load,
+            self._bq._table,
+            location=location,
+            job_config=job_config,
+        )
 
         load_job.result()
 
         logger.info(
-            f"{self._sheet_id} is loaded into {self._bq._project}.{self._bq._table}")
+            f"{self._sheet_id} is loaded into {self._bq._project}.{self._bq._table}"
+        )

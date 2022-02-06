@@ -1,7 +1,7 @@
 gfluent's documentation 0.1.13
 ==============================
 
-This is a wrapper on Google Cloud Platform Python SDK client library. 
+This is a wrapper on Google Cloud Platform Python SDK client library.
 It provides a fluent-style to call the methods, here is an example,
 
 .. code-block:: python
