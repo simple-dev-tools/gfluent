@@ -1,78 +1,67 @@
 import os
-from tempfile import NamedTemporaryFile, TemporaryDirectory
-import unittest
 
-
-from google.cloud import storage
+import pytest
 
 from gfluent import GCS
 
 
-class TestGCSIntegration(unittest.TestCase):
-    def setUp(self):
-        self.bucket = "johnny-trading-data"
-        self.prefix = "sit-temp"
-        self.project_id = os.environ.get("PROJECT_ID")
-
-        self.tf = NamedTemporaryFile()
-
-        with open(self.tf.name, 'w') as f:
-            f.write("hello")
-
-        # os.makedirs("/tmp/sit-temp", exist_ok=True)
-
-    def tearDown(self):
-        GCS(self.project_id).bucket(self.bucket).prefix(self.prefix).delete()
-
-    def test_upload_single(self):
-        gcs = GCS(project=self.project_id)
-        gcs.bucket(self.bucket).prefix(self.prefix).local(self.tf.name).upload()
+PROJECT_ID = "TBD"
+BUCKET = "TBD"
+PREFIX = "TBD"
 
 
-    def test_upload_many(self):
-        gcs = GCS(project=self.project_id)
-        current_path = os.path.dirname(os.path.abspath(__file__))
-        (
-            gcs.bucket(self.bucket)
-            .prefix("sit-temp")
-            .local(os.path.join(current_path, "..", "docs"))
-            .upload()
-        )
+@pytest.fixture
+def make_up_file(tmp_path):
+    filename = "data.txt"
+    full_path = os.path.join(tmp_path, filename)
+    with open(full_path, "w") as f:
+        f.write("hello world\n")
 
-    def test_download_many(self):
-        current_path = os.path.dirname(os.path.abspath(__file__))
-        # upload first
-        (
-            GCS(self.project_id).bucket(self.bucket)
-            .prefix(self.prefix)
-            .local(os.path.join(current_path, "..", "docs"))
-            .upload()
-        )
+    return full_path
 
-        # download
-        (
-            GCS(self.project_id).bucket(self.bucket)
-            .prefix(self.prefix + '/')
-            .local("/tmp")
-            .download()
-        )
 
-    def test_download_single(self):
-        # upload first
-        with open(os.path.join('/', "tmp", "tempfile.txt"), 'w') as f:
-            f.write("hello world")
+@pytest.fixture
+def make_up_many_files(tmp_path):
+    for i in range(10):
+        with open(os.path.join(tmp_path, f"file_{i}.txt"), "w") as f:
+            f.write(f"The file {i}\n")
 
-        (
-            GCS(self.project_id).bucket(self.bucket)
-            .prefix(self.prefix)
-            .local(os.path.join('/', "tmp", "tempfile.txt"))
-            .upload()
-        )
+    return tmp_path
 
-        # download
-        (
-            GCS(self.project_id).bucket(self.bucket)
-            .prefix(self.prefix + '/' + "tempfile.txt")
-            .local("/tmp")
-            .download()
-        )
+
+@pytest.mark.integtest
+def test_upload_single_file(make_up_file):
+    gcs = GCS(PROJECT_ID).local(make_up_file).bucket(BUCKET).prefix(PREFIX)
+    gcs.upload()
+
+    gcs.delete()
+
+
+@pytest.mark.integtest
+def test_upload_many_files_in_directory(make_up_many_files):
+    gcs = GCS(PROJECT_ID).local(make_up_many_files).bucket(BUCKET).prefix(PREFIX)
+    gcs.upload()
+
+    gcs.delete()
+
+
+@pytest.mark.integtest
+def test_download_files(tmp_path, make_up_many_files):
+    local_new_path = os.path.join(tmp_path, "saved")
+    os.makedirs(local_new_path, exist_ok=True)
+
+    # upload first
+    gcs = GCS(PROJECT_ID).local(make_up_many_files).bucket(BUCKET).prefix(PREFIX)
+    gcs.upload()
+
+    # download them
+    new_gcs = GCS(PROJECT_ID).local(local_new_path).bucket(BUCKET).prefix(PREFIX)
+    new_gcs.download()
+
+    for i in range(10):
+        with open(os.path.join(local_new_path, f"file_{i}.txt"), "r") as f:
+            content = f.read()
+            assert content == f"The file {i}\n"
+
+    # delete everything
+    gcs.delete()

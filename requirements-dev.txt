@@ -1,5 +1,0 @@
-google-cloud-bigquery
-google-cloud-storage
-google-api-python-client
-pytest==6.1.2
-poetry==1.1.5
