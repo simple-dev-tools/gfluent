@@ -2,7 +2,7 @@
 
 [![UT & SIT](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml/badge.svg?branch=develop)](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml)
 
-*Version: 1.1.0*
+*Version: 1.2.0*
 This is a lightweight wrapper on top of Google Cloud Platform Python SDK client library. It provides
 a fluent-style to call the methods. The motivation is, too many parameters for GCP `Storage` and
 `BigQuery` library, and most of them are ok to be set as default values.
