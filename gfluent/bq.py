@@ -2,10 +2,11 @@
 """
 import logging
 from typing import List
+from typing import Union
 
-from google.cloud.exceptions import NotFound
-from google.cloud import bigquery
 from google.api_core.exceptions import Conflict
+from google.cloud import bigquery
+from google.cloud.exceptions import NotFound
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class BQ(object):
     """The fluent-style BigQuery client for chaining calls
 
     Example:
-    
+
     .. code-block:: python
 
         # run the query and save to the table dataset.name
@@ -45,6 +46,7 @@ class BQ(object):
     :type kwargs: dict
 
     """
+
     __required_setting = {
         "table": "The BigQuery full tablename with dataset",
         "gcs": "The GCS location with gs:// prefix",
@@ -52,8 +54,9 @@ class BQ(object):
         "schema": "The BigQuery standard Schema structure",
         "mode": "override or append mode",
         "create_mode": "create or never create",
-        "format": "the datafile format"
+        "format": "the datafile format",
     }
+
     def __init__(self, project: str, **kwargs):
         if not isinstance(project, str) or project is None:
             raise ValueError("project id must be provided to init the BQ")
@@ -72,24 +75,23 @@ class BQ(object):
                 # setattr(self, f"_{attr}", kwargs[attr])
             else:
                 logger.warning(f"Ignored argument `{attr}`")
-    
+
     def __repr__(self):
         return f"BQ(project={self._project})"
-    
+
     def table(self, table: str):
         """Specify the table name with dataset.name format
 
         :param table: BigQuery full table name without project id
         :type table: str
         """
-        if not isinstance(table, str) or '.' not in table:
+        if not isinstance(table, str) or "." not in table:
             raise ValueError(f"{table} is not look like dataset.table")
 
         self._table = table
         self.__table_id = f"{self._project}.{table}"
 
         return self
-
 
     def format(self, format_: str):
         """Specify the format of import/export files, default NEWLINE_DELIMITED_JSON
@@ -104,8 +106,14 @@ class BQ(object):
         :param format: [description]
         :type format: str
         """
-        _allowed = ["AVRO", "CSV", "DATASTORE_BACKUP", "NEWLINE_DELIMITED_JSON",
-                    "ORC", "PARQUET"]
+        _allowed = [
+            "AVRO",
+            "CSV",
+            "DATASTORE_BACKUP",
+            "NEWLINE_DELIMITED_JSON",
+            "ORC",
+            "PARQUET",
+        ]
 
         if not isinstance(format_, str) or format_ not in _allowed:
             raise ValueError(f"{format_} is not one of {'|'.join(_allowed)}")
@@ -113,7 +121,6 @@ class BQ(object):
         self._format = format_
         return self
 
-    
     def gcs(self, gcs: str):
         """Specify the GCS location, single file or wildcard
 
@@ -130,16 +137,18 @@ class BQ(object):
     def sql(self, sql: str):
         """Specify the SQL statement
 
-        Only one statement is allowed, and only support ``SELECT`` and ``WITH`` 
+        Only one statement is allowed, and only support ``SELECT`` and ``WITH``
         as of now
 
         :param sql: must start with ``select``
         :type sql: str
         """
-        if not isinstance(sql, str) \
-            or (not sql.strip().upper().startswith("SELECT") \
-            and not sql.strip().upper().startswith("WITH")):
-            raise ValueError(f"{sql} is not look like SELECT or WITH ...")
+        if not isinstance(sql, str) or (
+            not sql.strip().upper().startswith("SELECT")
+            and not sql.strip().upper().startswith("WITH")
+            and not sql.strip().upper().startswith("DELETE")
+        ):
+            raise ValueError(f"{sql} should start with SELECT, WITH or DELETE")
 
         self._sql = sql
 
@@ -158,7 +167,6 @@ class BQ(object):
 
         return self
 
-        
     def mode(self, mode: str):
         """Set the bigquery ``write_disposition`` parameter, default WRITE_APPEND
 
@@ -198,13 +206,13 @@ class BQ(object):
         return self
 
     def _query(self) -> bigquery.table.RowIterator:
-        """Run the query and return rows
-        """
+        """Run the query and return rows"""
+        if self._sql.strip().upper().startswith("DELETE"):
+            logger.warning("You are running a DELETE statement")
         return self._client.query(self._sql).result()
 
     def _query_load(self) -> int:
-        """Run the query and save result to table
-        """
+        """Run the query and save result to table"""
         job_config = bigquery.QueryJobConfig(
             destination=self.__table_id,
             write_disposition=self._mode,
@@ -217,19 +225,24 @@ class BQ(object):
 
         return r.total_rows
 
-    def query(self):
-        """Run the given sql query, return rows or save to table
+    def query(self) -> Union[bigquery.table.RowIterator, int]:
+        """Run SQL query (SELECT/WITH or DELETE), return the RowIterator or count
 
         If the ``table`` attribute is set, it will save the query result to that
-        table,  otherwise it returns the BigQuery rows
+        table, and return count of rows saved. Otherwise it returns the BigQuery
+        RowIterator, the EmptyRowIterator will be returned for a successful DELETE
+        statement.
         """
-        if "_table" in self.__dict__:
+        if "_table" in self.__dict__ and not self._sql.strip().upper().startswith(
+            "DELETE"
+        ):
+            # The query load is not able to be run for DELETE statement
             return self._query_load()
         else:
             return self._query()
 
-    def load(self, location: str="US") -> int:
-        """Run the ``LoadJob``, and return number of rows loaded
+    def load(self, location: str = "US") -> int:
+        """Run the ``LoadJob``, and return number of rows actually loaded
 
         ``.table()``, ``.gcs()`` must be called to run this method.
         ``.schema()`` is optional, if not specified, using ``autodetect``
@@ -246,31 +259,34 @@ class BQ(object):
 
         if "_schema" not in self.__dict__:
             job_config = bigquery.LoadJobConfig(
-                autodetect=True,
-                source_format=self._format
+                autodetect=True, source_format=self._format
             )
         else:
             job_config = bigquery.LoadJobConfig(
-                schema=self._schema,
-                source_format=self._format
+                schema=self._schema, source_format=self._format
             )
 
         load_job = self._client.load_table_from_uri(
-            self._gcs,
-            self.__table_id,
-            location=location,
-            job_config=job_config
+            self._gcs, self.__table_id, location=location, job_config=job_config
         )
+
+        if self._mode == "WRITE_APPEND" and self.is_exist():
+            count_before_load = self._client.get_table(self.__table_id).num_rows
+        else:
+            count_before_load = 0
 
         load_job.result()
 
-        return self._client.get_table(self.__table_id).num_rows
+        count_after_load = self._client.get_table(self.__table_id).num_rows
 
+        if count_before_load == count_after_load:
+            logger.warning("No rows are loaded, row count does not change")
+
+        return count_after_load - count_before_load
 
     def export(self):
-        """Not implemented yet
-        """
-        pass
+        """Not implemented yet"""
+        raise NotImplementedError
 
     def truncate(self):
         """Delete all rows in the given table
@@ -297,7 +313,7 @@ class BQ(object):
         full_table_id = f"{self._project}.{self._table}"
         table_ref = bigquery.Table(full_table_id, schema=self._schema)
         try:
-            table = self._client.create_table(table_ref)
+            _ = self._client.create_table(table_ref)
         except Conflict:
             if ok_exists:
                 logger.warning(f"{self._table} already exists, skip creating")
@@ -305,8 +321,7 @@ class BQ(object):
                 raise
 
     def drop(self):
-        """Alias of ``.delete()``
-        """
+        """Alias of ``.delete()``"""
         self.delete()
 
     def delete(self):
@@ -339,7 +354,6 @@ class BQ(object):
         ds = self._client.create_dataset(ds_ref, timeout=30)
         logger.info(f"Successful created dataset {ds.dataset_id}")
 
-
     def delete_dataset(self, dataset: str):
         """Delete (or drop) the given dataset
 
@@ -351,7 +365,6 @@ class BQ(object):
         self._client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
         logger.info(f"Successful deleted dataset {dataset_id}")
 
-
     def is_exist(self) -> bool:
         """Check if a given table exists
 
@@ -360,7 +373,7 @@ class BQ(object):
         """
         if "_table" not in self.__dict__:
             raise ValueError("You must specify the table")
-        
+
         flag = True
         try:
             self._client.get_table(self.__table_id)
