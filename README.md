@@ -1,6 +1,8 @@
 # Google Cloud Fluent Client
 
-[![UT & SIT](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml/badge.svg?branch=develop)](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut-and-sit.yml)
+[![Unit Testing](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut.yml/badge.svg)](https://github.com/simple-dev-tools/gfluent/actions/workflows/ut.yml)
+[![Deployment](https://github.com/simple-dev-tools/gfluent/actions/workflows/deployment.yml/badge.svg)](https://github.com/simple-dev-tools/gfluent/actions/workflows/deployment.yml)
+[![PyPI version](https://badge.fury.io/py/gfluent.svg)](https://badge.fury.io/py/gfluent)
 
 *Version: 1.2.0*
 This is a lightweight wrapper on top of Google Cloud Platform Python SDK client library. It provides

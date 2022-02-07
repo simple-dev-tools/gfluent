@@ -30,6 +30,7 @@ setup(
     description="A lightweight wrapper for GCS and BigQuery client library",
     install_requires=requirements,
     long_description=readme + "\n\n",
+    long_description_content_type="text/markdown",
     include_package_data=True,
     keywords="google cloud bigquery gcs",
     name="gfluent",
