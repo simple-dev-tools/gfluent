@@ -5,23 +5,33 @@
 [![PyPI version](https://badge.fury.io/py/gfluent.svg)](https://badge.fury.io/py/gfluent)
 
 *Version: 1.2.0*
-This is a lightweight wrapper on top of Google Cloud Platform Python SDK client library. It provides
-a fluent-style to call the methods. The motivation is, too many parameters for GCP `Storage` and
-`BigQuery` library, and most of them are ok to be set as default values.
 
-This wrapper is suitable for Data Engineers to quickly create simple data pipeline based on GCP
-`BigQuery` and `Storage`, here are two examples.
+This is a lightweight wrapper on top of Google Cloud Platform Python SDK client libraries `BigQuery`,
+`Storage` and `Spreadsheet`. It is a great package for Data Engineers for craft data pipeline by using
+`BigQuery` and `Storage` as major services from Google Cloud Platform.
 
+The purpose of this package are,
+
+- Having a consistent way of using the GCP client libraries
+- Manage the version in a single place if multiple teams are using the GCP client libraries
+- Make it easier to accomplish the typical Data Engineering tasks (copy data, load and export)
+- The code explains what it does
+
+
+The current embedded client libraires versions are,
+
+- google-api-python-client==2.36.0
+- google-cloud-bigquery==2.32.0
+- google-cloud-storage==2.1.0
 
 ## Build Data Pipeline on BigQuery
 
 You (A Data Engineer) are asked to,
 
-- load multiple `json` files from your local drive to GCS
-
-- import those files to a BigQuery staging table
-
-- run another query based on the staging table by joining existing tables, and store the result to another table
+- Upload multiple `json` files from your local drive to GCS
+- Import those files to a BigQuery staging table
+- Run a SQL query based on the staging table by joining existing tables, and store the result
+to a new table
 
 
 To accomplish the task, here are the source code,
@@ -35,7 +45,7 @@ bucket_name = "my-bucket"
 dataset = "sales"
 table_name = "products"
 prefix = "import"
-local_path = "/user/tom/products/" # there are many *.json files in this directory
+local_path = "/user/tom/products/" # there are few *.json files in this directory
 
 # uplaod files to GCS bucket
 (
@@ -46,11 +56,10 @@ local_path = "/user/tom/products/" # there are many *.json files in this directo
     .upload()
 )
 
-# if you need to create the dataset
+# create the target dataset (in case not exists)
 BQ(project_id).create_dataset(dataset, location="US")
 
-# load data to BigQuery table
-
+# load json files to BigQuery table
 uri = f"gs://{bucket_name}/{prefix}/*.json"
 number_of_rows = (
     BQ(project_id)
@@ -64,10 +73,8 @@ number_of_rows = (
 print(f"{number_of_rows} rows are loaded")
 
 
-# run a query
-
+# run a SQL query and save to a final table
 final_table = "sales_summary"
-
 sql = """
     select t1.col1, t2.col2, t2.col3
     FROM
@@ -85,11 +92,10 @@ number_of_rows = (
     .query()
 )
 
-print(f"{number_of_rows} rows are appended")
+print(f"{number_of_rows} rows are loaded to {final_table}")
 
 
 # now let's query the new table
-
 rows = (
     BQ(product_id)
     .sql(f"select col1, col2 from {dataset}.{final_table} limit 10")
@@ -100,15 +106,16 @@ for row in rows:
     print(row.col1, row.col2)
 ```
 
-
 ## Loading data from Spreadsheet to BigQuery
+
+Here is another example to use the `Sheet` class for loading data from Google Spreadsheet.
 
 ```python
 import os
 from gfluent import Sheet, BQ
 
-project_id = 'your project id'
-sheet_id = 'your Google sheet id`
+project_id = 'your-project-id'
+sheet_id = 'the-google-spreadsheet-id'
 
 # assume the data is on the sheet `data` and range is `A1:B4`
 sheet = Sheet(
@@ -128,7 +135,6 @@ cases to see more real examples.
 
 ## Installation
 
-
 Install from PyPi,
 
 ```bash
@@ -138,14 +144,18 @@ pip install -U gfluent
 Or build and install from source code,
 
 ```bash
-pip install -r requirements-dev.txt
-poetry build
-pip install dist/gfluent-<versoin>.tar.gz
+git clone git@github.com:simple-dev-tools/gfluent.git
+cd gfluent
+make test-ut
+python setup.py install
 ```
 
 
 ## Contribution
 
-Any kinds of contribution is welcome, including report bugs, add feature or enhuance document. Please
-be noted, the Integration Test is using a real GCP project, and you may not have the permission to
-set up the test data.
+Any kinds of contribution is welcome, including report bugs, add feature or enhance the document. Please
+be noted,
+
+- Unit Testing with mock is intensively used, because we don't want to connect to a real GCP project
+- Please install `pre-commit` by using `pip install pre-commit` then `pre-commit install`
+- `bump2version` is used for update the version tag in various files
