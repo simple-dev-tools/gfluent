@@ -41,7 +41,7 @@ clean-test:
 test: ## run unit tests only
 	pytest -m "not integtest" $(PYTEST_OPTION)
 
-int-test: ## run integration tests
+test-int: ## run integration tests
 	pytest -m integtest $(PYTEST_OPTION)
 
 coverage: ## check code coverage quickly with the default Python

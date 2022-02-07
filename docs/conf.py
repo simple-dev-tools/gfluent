@@ -22,7 +22,12 @@ author = "Simple Dev Tools"
 
 
 # The full version, including alpha/beta/rc tags
-release = "1.2.0"
+release = "1.2.1"
+rst_epilog = """
+.. |ProjectVersion| replace:: {versionnum}
+""".format(
+    versionnum=release,
+)
 
 
 # -- General configuration ---------------------------------------------------
