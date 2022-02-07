@@ -4,7 +4,7 @@
 [![Deployment](https://github.com/simple-dev-tools/gfluent/actions/workflows/deployment.yml/badge.svg)](https://github.com/simple-dev-tools/gfluent/actions/workflows/deployment.yml)
 [![PyPI version](https://badge.fury.io/py/gfluent.svg)](https://badge.fury.io/py/gfluent)
 
-*Version: 1.2.0*
+*Version: 1.2.1*
 
 This is a lightweight wrapper on top of Google Cloud Platform Python SDK client libraries `BigQuery`,
 `Storage` and `Spreadsheet`. It is a great package for Data Engineers for craft data pipeline by using

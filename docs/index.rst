@@ -1,5 +1,5 @@
-Welcome gfluent's documentation
-===============================
+Welcome gfluent's documentation |ProjectVersion|
+================================================
 
 .. toctree::
    :maxdepth: 2
