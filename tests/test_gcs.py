@@ -92,15 +92,15 @@ def test_upload(obj, dummy_json_files):
 
     blob_calls = []
     for i in range(10):
-        blob_calls.append(call(f"how/are/you/{i}.json"))
+        blob_calls.append(call(os.path.join("how/are/you", f"{i}.json")))
     for i in range(5):
-        blob_calls.append(call(f"how/are/you/{i}.csv"))
+        blob_calls.append(call(os.path.join("how/are/you", f"{i}.csv")))
 
     upload_calls = []
     for i in range(10):
-        upload_calls.append(call(f"{dummy_json_files}/{i}.json"))
+        upload_calls.append(call(os.path.join(dummy_json_files, f"{i}.json")))
     for i in range(5):
-        upload_calls.append(call(f"{dummy_json_files}/{i}.csv"))
+        upload_calls.append(call(os.path.join(dummy_json_files, f"{i}.csv")))
 
     assert len(gcs._local_files) == 15
     # The Client is called
