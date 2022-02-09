@@ -58,7 +58,7 @@ def test_init_with_kwargs_local_files_and_suffix(dummy_json_files):
     assert gcs._bucket == "bucket"  # the prefix gs:// will be dropped
     assert gcs._prefix == "how/are/you"
     assert len(gcs._local_files) == 10
-    assert f"{dummy_json_files}/1.json" in gcs._local_files
+    assert os.path.join(dummy_json_files, "1.json") in gcs._local_files
 
 
 def test_init_with_kwargs_local_files_no_suffix(dummy_json_files):
@@ -78,8 +78,8 @@ def test_init_with_kwargs_local_files_no_suffix(dummy_json_files):
     assert gcs._bucket == "bucket"  # the prefix gs:// will be dropped
     assert gcs._prefix == "how/are/you"
     assert len(gcs._local_files) == 15
-    assert f"{dummy_json_files}/1.json" in gcs._local_files
-    assert f"{dummy_json_files}/1.csv" in gcs._local_files
+    assert os.path.join(dummy_json_files, "1.json") in gcs._local_files
+    assert os.path.join(dummy_json_files, "1.csv") in gcs._local_files
 
 
 @patch("gfluent.gcs.storage.Client", autospec=True)
@@ -98,9 +98,9 @@ def test_upload(obj, dummy_json_files):
 
     upload_calls = []
     for i in range(10):
-        upload_calls.append(call(f"{dummy_json_files}/{i}.json"))
+        upload_calls.append(call(os.path.join(dummy_json_files, f"{i}.json")))
     for i in range(5):
-        upload_calls.append(call(f"{dummy_json_files}/{i}.csv"))
+        upload_calls.append(call(os.path.join(dummy_json_files, f"{i}.csv")))
 
     assert len(gcs._local_files) == 15
     # The Client is called
