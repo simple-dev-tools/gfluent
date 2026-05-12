@@ -7,25 +7,27 @@ with open("README.md") as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "google-api-python-client==2.36.0",
-    "google-cloud-bigquery==2.32.0",
-    "google-cloud-storage==2.1.0",
+    "google-api-python-client>=2.196.0",
+    "google-cloud-bigquery>=3.41.0",
+    "google-cloud-storage>=3.10.1",
 ]
 
-test_requirements = ["pytest>=3"]
+test_requirements = ["pytest>=8"]
 
 setup(
     author="Zhong Dai",
     author_email="zhongdai.au@gmail.com",
-    python_requires=">=3.7.3",
+    python_requires=">=3.9",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
     description="A lightweight wrapper for GCS and BigQuery client library",
     install_requires=requirements,
